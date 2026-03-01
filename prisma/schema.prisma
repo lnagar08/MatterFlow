@@ -1,0 +1,253 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "sqlite"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model Firm {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships FirmMembership[]
+  invitations Invitation[]
+  clients     Client[]
+  matters     Matter[]
+  templates   MatterTemplate[]
+  settings    FirmSetting[]
+  ruleSettings FirmSettings?
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  membership FirmMembership?
+  accounts Account[]
+  sessions Session[]
+}
+
+model FirmMembership {
+  id        String   @id @default(cuid())
+  firmId    String
+  userId    String   @unique
+  role      FirmRole
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  firm Firm @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([firmId, userId])
+}
+
+model Invitation {
+  id         String    @id @default(cuid())
+  email      String
+  firmId     String
+  role       FirmRole
+  token      String    @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  firm Firm @relation(fields: [firmId], references: [id], onDelete: Cascade)
+}
+
+model Client {
+  id          String   @id @default(cuid())
+  name        String
+  companyName String
+  logoUrl     String
+  firmId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  firm    Firm     @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  matters Matter[]
+}
+
+model Matter {
+  id             String   @id @default(cuid())
+  title          String
+  blurb          String
+  engagementDate DateTime
+  amountPaid     Int
+  dueDate        DateTime
+  lastActivityAt DateTime
+  archivedAt     DateTime?
+  closedAt       DateTime?
+  groupProgress  Json?
+  firmId         String
+  clientId       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  firm            Firm             @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  client          Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  checklistGroups ChecklistGroup[]
+  checklistSteps  ChecklistStep[]
+}
+
+model MatterTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  sortOrder Int      @default(0)
+  firmId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  firm   Firm            @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  groups TemplateGroup[]
+  steps  TemplateStep[]
+}
+
+model FirmSetting {
+  id        String   @id @default(cuid())
+  key       String
+  value     String
+  firmId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  firm Firm @relation(fields: [firmId], references: [id], onDelete: Cascade)
+
+  @@unique([firmId, key])
+}
+
+model FirmSettings {
+  id                       String   @id @default(cuid())
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  bottleneckNoProgressDays Int      @default(7)
+  noMovementDays           Int      @default(7)
+  defaultGroupExpectedDays Int      @default(7)
+  groupGraceDays           Int      @default(2)
+  agingDays                Int      @default(30)
+  penaltyBoxOpenDays       Int      @default(40)
+  bottleneckDays           Int      @default(7)
+  dueSoonHours             Int      @default(48)
+  penaltyIncludeOverdue    Boolean  @default(true)
+  penaltyIncludeBottleneck Boolean  @default(true)
+  penaltyIncludeAging      Boolean  @default(true)
+  groupTimingEnabled       Boolean  @default(true)
+  maxOpenDays              Int?
+  firmId                   String   @unique
+
+  firm Firm @relation(fields: [firmId], references: [id], onDelete: Cascade)
+}
+
+model ChecklistGroup {
+  id        String   @id @default(cuid())
+  title     String
+  sortOrder Int
+  indentLevel Int @default(0)
+  expectedDurationDays Int?
+  matterId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  matter Matter          @relation(fields: [matterId], references: [id], onDelete: Cascade)
+  steps  ChecklistStep[]
+}
+
+model ChecklistStep {
+  id        String   @id @default(cuid())
+  label     String
+  completed Boolean  @default(false)
+  completedAt DateTime?
+  sortOrder Int
+  indentLevel Int @default(0)
+  dueDaysOffset Int?
+  dueAt     DateTime?
+  matterId   String
+  groupId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  matter Matter @relation(fields: [matterId], references: [id], onDelete: Cascade)
+  group ChecklistGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model TemplateGroup {
+  id          String   @id @default(cuid())
+  title       String
+  sortOrder   Int
+  indentLevel Int      @default(0)
+  expectedDurationDays Int?
+  templateId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  template MatterTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  steps    TemplateStep[]
+}
+
+model TemplateStep {
+  id                   String   @id @default(cuid())
+  label                String
+  sortOrder            Int
+  indentLevel          Int      @default(0)
+  defaultDueDaysOffset Int?
+  templateId           String
+  groupId              String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  template MatterTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  group    TemplateGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum FirmRole {
+  ADMIN
+  ATTORNEY
+  STAFF
+  READ_ONLY
+}
