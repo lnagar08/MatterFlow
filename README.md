@@ -57,3 +57,4 @@ Open `http://localhost:3000`.
 - Default local flow uses direct email sign-in (no inbox step) via NextAuth credentials provider.
 - Optional: if SMTP is configured in `.env`, EmailProvider remains available for magic links.
 - The NextAuth route is available at `/api/auth/[...nextauth]`.
+trigger vercel build
