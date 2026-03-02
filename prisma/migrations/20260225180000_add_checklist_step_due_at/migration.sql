@@ -1,1 +1,1 @@
-ALTER TABLE "ChecklistStep" ADD COLUMN "dueAt" DATETIME;
+ALTER TABLE "ChecklistStep" ADD COLUMN "dueAt" TIMESTAMP(3);

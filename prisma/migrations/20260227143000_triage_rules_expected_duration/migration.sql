@@ -9,5 +9,5 @@ ALTER TABLE "TemplateGroup" ADD COLUMN "expectedDurationDays" INTEGER;
 ALTER TABLE "ChecklistGroup" ADD COLUMN "expectedDurationDays" INTEGER;
 
 -- AlterTable
-ALTER TABLE "ChecklistStep" ADD COLUMN "completedAt" DATETIME;
+ALTER TABLE "ChecklistStep" ADD COLUMN "completedAt" TIMESTAMP(3);
 

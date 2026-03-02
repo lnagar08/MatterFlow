@@ -1,8 +1,8 @@
 -- CreateTable
 CREATE TABLE "FirmSettings" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "bottleneckDays" INTEGER NOT NULL DEFAULT 7,
     "dueSoonHours" INTEGER NOT NULL DEFAULT 48,
     "penaltyIncludeOverdue" BOOLEAN NOT NULL DEFAULT true,

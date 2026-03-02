@@ -1,1 +1,1 @@
-ALTER TABLE "Matter" ADD COLUMN "closedAt" DATETIME;
+ALTER TABLE "Matter" ADD COLUMN "closedAt" TIMESTAMP(3);
