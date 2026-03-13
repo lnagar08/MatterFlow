@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 type StatusLabel = "On Track" | "Needs Attention" | "Bottlenecked" | "Penalty Box";
 
 type Row = {
@@ -53,8 +55,16 @@ export function MatterRowCard({ row, sortMode }: Props) {
   ].filter(Boolean).slice(0, 2) as string[];
 
   return (
-    <a key={row.id} href={`/matters/${row.id}?order=${sortMode}`} className="home-row-card">
-      <img src={row.clientLogoUrl} alt={`${row.clientName} logo`} className="home-avatar" />
+    <a href={`/matters/${row.id}?order=${sortMode}`} className="home-row-card">
+      <Image
+        src={row.clientLogoUrl || "/globe.svg"}
+        loader={({ src }) => src}
+        alt={`${row.clientName} logo`}
+        className="home-avatar"
+        width={56}
+        height={56}
+        unoptimized
+      />
 
       <div className="home-row-main">
         <div className="home-title">{row.clientName + " - " + row.matterTitle}</div>
@@ -69,8 +79,8 @@ export function MatterRowCard({ row, sortMode }: Props) {
         <div className={`home-reason ${health}`}>{row.reason}</div>
         {secondaryBadges.length > 0 ? (
           <div className="row" style={{ gap: 6, marginTop: 6 }}>
-            {secondaryBadges.map((badge) => (
-              <span key={badge} className={`status ${health}`}>{badge}</span>
+            {secondaryBadges.map((badge, index) => (
+              <span key={`${row.id}-${badge}-${index}`} className={`status ${health}`}>{badge}</span>
             ))}
           </div>
         ) : null}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AdminDropdown } from "@/components/admin-dropdown";
 
@@ -34,18 +34,31 @@ export function AppNav({ active, userName }: AppNavProps) {
     if (!target) return;
     const navRect = navRef.current.getBoundingClientRect();
     const linkRect = target.getBoundingClientRect();
+    const computed = window.getComputedStyle(target);
+    const padLeft = Number.parseFloat(computed.paddingLeft || "0") || 0;
+    const padRight = Number.parseFloat(computed.paddingRight || "0") || 0;
+    const innerWidth = Math.max(24, linkRect.width - padLeft - padRight);
     setIndicatorStyle({
-      left: linkRect.left - navRect.left + 16,
-      width: Math.max(24, linkRect.width - 32),
+      left: linkRect.left - navRect.left + padLeft,
+      width: innerWidth,
       visible: true
     });
   }
 
-  useEffect(() => {
-    moveIndicator(activeTopNav);
-    const onResize = () => moveIndicator(activeTopNav);
+  useLayoutEffect(() => {
+    let raf = 0;
+    const snapToActive = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => moveIndicator(activeTopNav));
+    };
+
+    snapToActive();
+    const onResize = () => snapToActive();
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("resize", onResize);
+    };
   }, [activeTopNav]);
 
   useEffect(() => {
@@ -89,8 +102,8 @@ export function AppNav({ active, userName }: AppNavProps) {
           <nav
             className="app-nav-center"
             ref={navRef}
-            onMouseLeave={() => moveIndicator(activeTopNav)}
-            onBlur={() => moveIndicator(activeTopNav)}
+            onMouseLeave={() => requestAnimationFrame(() => moveIndicator(activeTopNav))}
+            onBlur={() => requestAnimationFrame(() => moveIndicator(activeTopNav))}
           >
             <span
               className={`nav-underline ${indicatorStyle.visible ? "visible" : ""}`}

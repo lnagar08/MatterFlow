@@ -30,10 +30,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const prefKey = user?.id
     ? `matterflow.dashboardVisible.${user.id}.${membership.firmId}`
     : "matterflow.dashboardVisible";
-  const compactPrefKey = user?.id
-    ? `matterflow.compactMode.${user.id}.${membership.firmId}`
-    : "matterflow.compactMode";
-
   const { rows, metrics } = await getHomeData({
     firmId: membership.firmId,
     query: initialSearch
@@ -41,16 +37,15 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <main className="overflow-x-hidden home-main">
+      <AppNav active="home" userName={user?.name ?? user?.email ?? "Admin"} />
       <HomeMattersList
         rows={rows}
         metrics={metrics}
         dashboardPreferenceKey={prefKey}
-        compactPreferenceKey={compactPrefKey}
         initialFilter={initialFilter}
         initialSort={initialSort}
         initialDirection={initialDirection}
         initialSearch={initialSearch}
-        navBar={<AppNav active="home" userName={user?.name ?? user?.email ?? "Admin"} />}
       />
     </main>
   );

@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
-  directUrl         = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Firm {
@@ -138,6 +137,7 @@ model FirmSettings {
   penaltyBoxOpenDays       Int      @default(40)
   bottleneckDays           Int      @default(7)
   dueSoonHours             Int      @default(48)
+  atRiskStageWindowDays    Int      @default(2)
   penaltyIncludeOverdue    Boolean  @default(true)
   penaltyIncludeBottleneck Boolean  @default(true)
   penaltyIncludeAging      Boolean  @default(true)

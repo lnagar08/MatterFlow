@@ -1,0 +1,55 @@
+<svg width="2048" height="430" viewBox="0 0 2048 430" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="panelBg" x1="0" y1="0" x2="0" y2="430" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#F7FAFF" stop-opacity="0.9"/>
+    </linearGradient>
+    <filter id="soft" x="30" y="18" width="1988" height="394" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#123059" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#soft)">
+    <rect x="60" y="28" width="1928" height="354" rx="24" fill="url(#panelBg)" stroke="#D4E0F0"/>
+  </g>
+
+  <text x="104" y="84" fill="#132445" font-family="Inter, Segoe UI, Arial" font-size="34" font-weight="700">Flow Timeline</text>
+  <text x="104" y="116" fill="#5C7396" font-family="Inter, Segoe UI, Arial" font-size="22" font-weight="600">Full PPM Services · Joe Goodman – Umbrella Filing Only</text>
+
+  <line x1="220" y1="190" x2="1820" y2="190" stroke="#D1DCEC" stroke-width="10" stroke-linecap="round"/>
+
+  <line x1="220" y1="190" x2="620" y2="190" stroke="#22A06B" stroke-width="12" stroke-linecap="round"/>
+  <line x1="620" y1="190" x2="1020" y2="190" stroke="#E2A31A" stroke-width="12" stroke-linecap="round"/>
+  <line x1="1020" y1="190" x2="1420" y2="190" stroke="#E65050" stroke-width="12" stroke-linecap="round"/>
+  <line x1="1420" y1="190" x2="1820" y2="190" stroke="#94A3B8" stroke-width="12" stroke-linecap="round"/>
+
+  <circle cx="220" cy="190" r="19" fill="#22A06B"/>
+  <circle cx="620" cy="190" r="19" fill="#E2A31A"/>
+  <circle cx="1020" cy="190" r="19" fill="#E65050"/>
+  <circle cx="1420" cy="190" r="19" fill="#94A3B8"/>
+  <circle cx="1820" cy="190" r="19" fill="#94A3B8"/>
+
+  <text x="165" y="158" fill="#1D6849" font-family="Inter, Segoe UI, Arial" font-size="26" font-weight="700">Intake ✅</text>
+  <text x="535" y="158" fill="#94620B" font-family="Inter, Segoe UI, Arial" font-size="26" font-weight="700">Drafting ⚠</text>
+  <text x="925" y="158" fill="#B42333" font-family="Inter, Segoe UI, Arial" font-size="26" font-weight="700">SEC/Blue Sky ●</text>
+  <text x="1332" y="158" fill="#475569" font-family="Inter, Segoe UI, Arial" font-size="26" font-weight="700">Closing ○</text>
+
+  <text x="180" y="238" fill="#1D6849" font-family="Inter, Segoe UI, Arial" font-size="30" font-weight="700">10/12d</text>
+  <text x="565" y="238" fill="#94620B" font-family="Inter, Segoe UI, Arial" font-size="30" font-weight="700">29/30d</text>
+  <text x="980" y="238" fill="#B42333" font-family="Inter, Segoe UI, Arial" font-size="30" font-weight="700">7/5d</text>
+  <text x="1378" y="238" fill="#475569" font-family="Inter, Segoe UI, Arial" font-size="30" font-weight="700">0/7d</text>
+
+  <text x="140" y="292" fill="#40597D" font-family="Inter, Segoe UI, Arial" font-size="22" font-weight="600">Intake completed in 10 days (target 12)</text>
+  <text x="140" y="324" fill="#94620B" font-family="Inter, Segoe UI, Arial" font-size="22" font-weight="700">Drafting has 1 day left before target limit</text>
+  <text x="980" y="292" fill="#B42333" font-family="Inter, Segoe UI, Arial" font-size="22" font-weight="700">SEC/Blue Sky is 2 days over target</text>
+  <text x="980" y="324" fill="#475569" font-family="Inter, Segoe UI, Arial" font-size="22" font-weight="600">Closing not entered yet (not applicable yet)</text>
+
+  <circle cx="1588" cy="72" r="8" fill="#22A06B"/>
+  <text x="1606" y="79" fill="#2B456B" font-family="Inter, Segoe UI, Arial" font-size="18" font-weight="600">In Flow</text>
+  <circle cx="1695" cy="72" r="8" fill="#E2A31A"/>
+  <text x="1713" y="79" fill="#2B456B" font-family="Inter, Segoe UI, Arial" font-size="18" font-weight="600">At Flow Risk</text>
+  <circle cx="1838" cy="72" r="8" fill="#E65050"/>
+  <text x="1856" y="79" fill="#2B456B" font-family="Inter, Segoe UI, Arial" font-size="18" font-weight="600">Out of Flow</text>
+  <circle cx="1588" cy="102" r="8" fill="#94A3B8"/>
+  <text x="1606" y="109" fill="#2B456B" font-family="Inter, Segoe UI, Arial" font-size="18" font-weight="600">Not applicable yet</text>
+</svg>

@@ -13,6 +13,7 @@ type RulesPayload = {
   groupTimingEnabled?: boolean;
   agingDays?: number;
   dueSoonHours?: number;
+  atRiskStageWindowDays?: number;
   penaltyBoxOpenDays?: number;
   penaltyIncludeOverdue?: boolean;
   penaltyIncludeAging?: boolean;
@@ -46,6 +47,7 @@ export async function PUT(request: Request) {
   }
 
   const payload = (await request.json()) as RulesPayload;
+  const current = await getFirmSettings(membership.firmId);
   const bottleneckNoProgressDays = asNumber(payload.bottleneckNoProgressDays);
   const noMovementDays = asNumber(payload.noMovementDays ?? payload.bottleneckDays);
   const bottleneckDays = asNumber(payload.bottleneckDays ?? payload.noMovementDays);
@@ -54,6 +56,7 @@ export async function PUT(request: Request) {
   const groupTimingEnabled = payload.groupTimingEnabled ?? true;
   const agingDays = asNumber(payload.agingDays);
   const dueSoonHours = asNumber(payload.dueSoonHours);
+  const atRiskStageWindowDays = asNumber(payload.atRiskStageWindowDays ?? current.atRiskStageWindowDays);
   const penaltyBoxOpenDays = asNumber(payload.penaltyBoxOpenDays);
   const penaltyIncludeOverdue = payload.penaltyIncludeOverdue ?? true;
   const penaltyIncludeAging = payload.penaltyIncludeAging ?? true;
@@ -79,6 +82,9 @@ export async function PUT(request: Request) {
   if (!Number.isInteger(dueSoonHours) || dueSoonHours < 1 || dueSoonHours > 168) {
     return NextResponse.json({ error: "Due soon hours must be between 1 and 168." }, { status: 400 });
   }
+  if (!Number.isInteger(atRiskStageWindowDays) || atRiskStageWindowDays < 0 || atRiskStageWindowDays > 30) {
+    return NextResponse.json({ error: "At Flow Risk stage window days must be between 0 and 30." }, { status: 400 });
+  }
   if (!Number.isInteger(penaltyBoxOpenDays) || penaltyBoxOpenDays < 1 || penaltyBoxOpenDays > 3650) {
     return NextResponse.json({ error: "Penalty Box open days must be between 1 and 3650." }, { status: 400 });
   }
@@ -89,7 +95,6 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Penalty reason toggles must be booleans." }, { status: 400 });
   }
 
-  const current = await getFirmSettings(membership.firmId);
   const settings = await prisma.firmSettings.update({
     where: { id: current.id },
     data: {
@@ -101,6 +106,7 @@ export async function PUT(request: Request) {
       groupTimingEnabled,
       agingDays,
       dueSoonHours,
+      atRiskStageWindowDays,
       penaltyBoxOpenDays,
       penaltyIncludeOverdue,
       penaltyIncludeAging

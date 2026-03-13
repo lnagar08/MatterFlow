@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { DashboardTriage } from "@/components/home/dashboard-triage";
@@ -45,6 +45,7 @@ type HomeMatterRow = {
   currentStageTitle: string;
   currentStageExpectedDays: number | null;
   currentStageElapsedDays: number | null;
+  currentStageGraceDays: number;
   matterFlowName: string;
 };
 
@@ -56,14 +57,12 @@ type SortMode =
   | "added-asc"
   | "daysOpen"
   | "revenue";
-type DashboardFilter = "none" | "needs-attention" | "overdue" | "penalty-box" | "workload";
+type DashboardFilter = "none" | "in-flow" | "needs-attention" | "overdue" | "penalty-box" | "all-active";
 
 type Props = {
   rows: HomeMatterRow[];
   metrics: HomeMetrics;
   dashboardPreferenceKey: string;
-  compactPreferenceKey: string;
-  navBar?: ReactNode;
   initialFilter?:
     | "all-active"
     | "at-risk"
@@ -100,7 +99,16 @@ function getSortQuery(sortMode: SortMode) {
 }
 
 function parseDashboardFilter(value: string | null | undefined): DashboardFilter {
-  if (value === "needs-attention" || value === "overdue" || value === "penalty-box" || value === "workload") return value;
+  if (
+    value === "in-flow" ||
+    value === "needs-attention" ||
+    value === "overdue" ||
+    value === "penalty-box" ||
+    value === "all-active"
+  ) {
+    return value;
+  }
+  if (value === "workload") return "all-active";
   return "none";
 }
 
@@ -108,8 +116,6 @@ export function HomeMattersList({
   rows,
   metrics,
   dashboardPreferenceKey,
-  compactPreferenceKey,
-  navBar,
   initialFilter = "all-active",
   initialSort = "engagementDate",
   initialDirection = "desc",
@@ -125,7 +131,6 @@ export function HomeMattersList({
   const [sortMode, setSortMode] = useState<SortMode>(parseSortMode(initialSort, initialDirection));
   const [dashboardFilter, setDashboardFilter] = useState<DashboardFilter>(parseDashboardFilter(searchParams.get("op")));
   const [dashboardVisible, setDashboardVisible] = useUiPreference(dashboardPreferenceKey, true);
-  const [compactMode, setCompactMode] = useUiPreference(compactPreferenceKey, false);
   const [mockupLayout, setMockupLayout] = useUiPreference(`${dashboardPreferenceKey}.mockupLayout`, true);
   const [importOpen, setImportOpen] = useState(false);
 
@@ -193,10 +198,11 @@ export function HomeMattersList({
 
   const matchesDashboardFilter = useCallback((row: HomeMatterRow) => {
     if (dashboardFilter === "none") return true;
-    if (dashboardFilter === "needs-attention") return row.isAtRisk || row.isPenaltyBox;
-    if (dashboardFilter === "overdue") return row.isOverdue;
+    if (dashboardFilter === "all-active") return true;
+    if (dashboardFilter === "in-flow") return row.isOnTrack;
+    if (dashboardFilter === "needs-attention") return row.isAtRisk;
+    if (dashboardFilter === "overdue") return row.isOverdue || row.isBottlenecked;
     if (dashboardFilter === "penalty-box") return row.isPenaltyBox;
-    if (dashboardFilter === "workload") return true;
     return true;
   }, [dashboardFilter]);
 
@@ -221,7 +227,7 @@ export function HomeMattersList({
     const normalized = search.trim().toLowerCase();
 
     const filteredRows = rows.filter((row) => {
-      if (overdueOnly && row.overdueStepsCount < 1) {
+      if (overdueOnly && !(row.isOverdue || row.isBottlenecked)) {
         return false;
       }
       if (penaltyOnly && !row.isPenaltyBox) {
@@ -265,11 +271,13 @@ export function HomeMattersList({
   const activeFilterLabel = dashboardFilter === "needs-attention"
     ? "At Flow Risk"
     : dashboardFilter === "overdue"
-      ? "Overdue"
+      ? "Out of Flow"
       : dashboardFilter === "penalty-box"
         ? "Flow Breakdown"
-        : dashboardFilter === "workload"
+        : dashboardFilter === "in-flow"
           ? "In Flow"
+          : dashboardFilter === "all-active"
+            ? "All Active"
           : overdueOnly
             ? "Overdue Flow Steps"
             : penaltyOnly
@@ -296,19 +304,45 @@ export function HomeMattersList({
     const msPerDay = 1000 * 60 * 60 * 24;
     const days = Math.ceil((due.getTime() - now.getTime()) / msPerDay);
     if (days < 0) return `Overdue ${Math.abs(days)}d`;
-    if (days === 0) return "Due tomorrow";
+    if (days === 0) return "Due today";
+    if (days === 1) return "Due tomorrow";
     return `Due in ${days}d`;
   }
 
   function timeInStage(row: HomeMatterRow) {
-    if (row.currentStageElapsedDays === null || row.currentStageExpectedDays === null) return "—";
-    return `${row.currentStageElapsedDays} of ${row.currentStageExpectedDays} days`;
+    if (row.currentStageElapsedDays === null || row.currentStageExpectedDays === null) {
+      return <span className="meta">No stage target</span>;
+    }
+
+    const elapsed = row.currentStageElapsedDays;
+    const elapsedLabel =
+      elapsed <= 0 ? "Started today" : elapsed === 1 ? "1 day in stage" : `${elapsed} days in stage`;
+    const target = row.currentStageExpectedDays;
+    const grace = Math.max(0, row.currentStageGraceDays ?? 0);
+    const limit = target + grace;
+    const overLimit = elapsed - limit;
+
+    if (overLimit > 0) {
+      return (
+        <div>
+          <strong>{elapsedLabel}</strong>
+          <div className="meta text-danger">{`${overLimit}d over limit`}</div>
+        </div>
+      );
+    }
+
+    const remainingToLimit = Math.max(0, limit - elapsed);
+    return (
+      <div>
+        <strong>{elapsedLabel}</strong>
+        <div className="meta">{`${remainingToLimit}d left`}</div>
+      </div>
+    );
   }
 
   if (mockupLayout) {
     return (
-      <div className={`flow-mockup-shell ${compactMode ? "compact" : ""}`}>
-        {navBar}
+      <div className="flow-mockup-shell">
         <div className="flow-mockup-body">
           <section className="flow-mockup-main">
             <header className="flow-mockup-header">
@@ -331,6 +365,9 @@ export function HomeMattersList({
                   />
                 </label>
                 <Link href="/matters/new" className="button primary">+ New Matter</Link>
+                <button type="button" className="button" onClick={() => setImportOpen(true)}>
+                  Import CSV
+                </button>
                 <button type="button" className="button" onClick={() => setMockupLayout(false)}>
                   Switch to Classic Layout
                 </button>
@@ -364,10 +401,17 @@ export function HomeMattersList({
                     setQueryParams({ overdueOnly: false, penaltyOnly: true, op: "penalty-box" });
                     return;
                   }
+                  if (action === "in-flow") {
+                    setOverdueOnly(false);
+                    setPenaltyOnly(false);
+                    setDashboardFilter("in-flow");
+                    setQueryParams({ overdueOnly: false, penaltyOnly: false, op: "in-flow" });
+                    return;
+                  }
                   setOverdueOnly(false);
                   setPenaltyOnly(false);
-                  setDashboardFilter("workload");
-                  setQueryParams({ overdueOnly: false, penaltyOnly: false, op: "workload" });
+                  setDashboardFilter("all-active");
+                  setQueryParams({ overdueOnly: false, penaltyOnly: false, op: "all-active" });
                 }}
               />
             ) : null}
@@ -400,18 +444,6 @@ export function HomeMattersList({
                     aria-checked={dashboardVisible}
                     className={`toggle-switch ${dashboardVisible ? "on" : ""}`}
                     onClick={() => setDashboardVisible((value) => !value)}
-                  >
-                    <span className="toggle-thumb" />
-                  </button>
-                </label>
-                <label className="dashboard-toggle">
-                  <span>Compact</span>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={compactMode}
-                    className={`toggle-switch ${compactMode ? "on" : ""}`}
-                    onClick={() => setCompactMode((value) => !value)}
                   >
                     <span className="toggle-thumb" />
                   </button>
@@ -453,10 +485,10 @@ export function HomeMattersList({
                 <span>Next Step</span>
                 <span>Flow Status</span>
               </div>
-              {filtered.map((row) => {
+              {filtered.map((row, index) => {
                 const statusClass = flowStatusClass(row);
                 return (
-                  <a key={row.id} href={`/matters/${row.id}?order=${sortMode}`} className="flow-table-row">
+                  <a key={`${row.id}-${index}`} href={`/matters/${row.id}?order=${sortMode}`} className="flow-table-row">
                     <div>
                       <strong>{row.clientName} - {row.matterTitle}</strong>
                       <div className="meta">{row.reason}</div>
@@ -489,9 +521,7 @@ export function HomeMattersList({
   }
 
   return (
-    <div className={`home-shell home-shell-mock ${compactMode ? "compact" : ""}`}>
-      {navBar}
-
+    <div className="home-shell home-shell-mock">
       <section className="home-page-top">
         <div className="home-page-title">
           <h1 style={{ marginBottom: 0 }}>Flow Control</h1>
@@ -531,10 +561,17 @@ export function HomeMattersList({
               setQueryParams({ overdueOnly: false, penaltyOnly: true, op: "penalty-box" });
               return;
             }
+            if (action === "in-flow") {
+              setOverdueOnly(false);
+              setPenaltyOnly(false);
+              setDashboardFilter("in-flow");
+              setQueryParams({ overdueOnly: false, penaltyOnly: false, op: "in-flow" });
+              return;
+            }
             setOverdueOnly(false);
             setPenaltyOnly(false);
-            setDashboardFilter("workload");
-            setQueryParams({ overdueOnly: false, penaltyOnly: false, op: "workload" });
+            setDashboardFilter("all-active");
+            setQueryParams({ overdueOnly: false, penaltyOnly: false, op: "all-active" });
           }}
         />
       ) : null}
@@ -551,6 +588,9 @@ export function HomeMattersList({
           <Link href="/matters/new" className="button primary home-primary-cta">
             + New Matter
           </Link>
+          <button type="button" className="button" onClick={() => setImportOpen(true)}>
+            Import CSV
+          </button>
         </div>
       </section>
 
@@ -588,19 +628,6 @@ export function HomeMattersList({
                     aria-checked={dashboardVisible}
                     className={`toggle-switch ${dashboardVisible ? "on" : ""}`}
                     onClick={() => setDashboardVisible((value) => !value)}
-                  >
-                    <span className="toggle-thumb" />
-                  </button>
-                </label>
-                <div className="home-toggle-divider" />
-                <label className="dashboard-toggle">
-                  <span>Compact Mode</span>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={compactMode}
-                    className={`toggle-switch ${compactMode ? "on" : ""}`}
-                    onClick={() => setCompactMode((value) => !value)}
                   >
                     <span className="toggle-thumb" />
                   </button>
@@ -649,8 +676,8 @@ export function HomeMattersList({
 
         <div className="home-list-scroll" id="home-matter-list">
           <div className="home-list">
-            {filtered.map((row) => (
-              <MatterRowCard key={row.id} row={row} sortMode={sortMode} />
+            {filtered.map((row, index) => (
+              <MatterRowCard key={`${row.id}-${index}`} row={row} sortMode={sortMode} />
             ))}
 
             {filtered.length === 0 ? (

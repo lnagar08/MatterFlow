@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 
 import { getCurrentUserContext } from "@/lib/firm-access";
-import { parseGroupProgress } from "@/lib/group-progress";
+import { buildGroupProgressPayload, parseGroupProgress } from "@/lib/group-progress";
 import { prisma } from "@/lib/prisma";
 
 type Params = {
@@ -15,7 +16,21 @@ type Params = {
 type Payload = {
   completed?: boolean;
   dueAt?: string | null;
+  completedAt?: string | null;
 };
+
+function completionBaseline(step: {
+  completedAt: Date | null;
+  dueAt: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+}) {
+  return (
+    step.completedAt?.getTime() ??
+    step.dueAt?.getTime() ??
+    null
+  );
+}
 
 export async function PATCH(request: Request, { params }: Params) {
   const context = await getCurrentUserContext();
@@ -28,10 +43,11 @@ export async function PATCH(request: Request, { params }: Params) {
 
   const hasCompleted = typeof payload.completed === "boolean";
   const hasDueAt = payload.dueAt === null || typeof payload.dueAt === "string";
+  const hasCompletedAt = payload.completedAt === null || typeof payload.completedAt === "string";
 
-  if (!hasCompleted && !hasDueAt) {
+  if (!hasCompleted && !hasDueAt && !hasCompletedAt) {
     return NextResponse.json(
-      { error: "Provide completed (boolean) and/or dueAt (ISO date string or null)." },
+      { error: "Provide completed (boolean), completedAt (ISO date string or null), and/or dueAt (ISO date string or null)." },
       { status: 400 }
     );
   }
@@ -62,10 +78,32 @@ export async function PATCH(request: Request, { params }: Params) {
     }
   }
 
+  let completedAt: Date | null | undefined;
+  if (payload.completedAt !== undefined) {
+    if (payload.completedAt === null || payload.completedAt === "") {
+      completedAt = null;
+    } else {
+      completedAt = new Date(payload.completedAt);
+      if (Number.isNaN(completedAt.getTime())) {
+        return NextResponse.json({ error: "completedAt must be a valid date string or null." }, { status: 400 });
+      }
+    }
+  }
+
+  if (payload.completedAt !== undefined && payload.completed === false && completedAt !== null) {
+    return NextResponse.json({ error: "Cannot set a completed date when completed is false." }, { status: 400 });
+  }
+
   const stepUpdateData: { completed?: boolean; completedAt?: Date | null; dueAt?: Date | null } = {};
   if (hasCompleted) {
     stepUpdateData.completed = payload.completed;
     stepUpdateData.completedAt = payload.completed ? new Date() : null;
+  }
+  if (payload.completedAt !== undefined) {
+    stepUpdateData.completedAt = completedAt;
+    if (payload.completed === undefined && completedAt !== null) {
+      stepUpdateData.completed = true;
+    }
   }
   if (payload.dueAt !== undefined) {
     stepUpdateData.dueAt = dueAt;
@@ -98,19 +136,70 @@ export async function PATCH(request: Request, { params }: Params) {
 
     const groupProgress = parseGroupProgress(matterWithProgress?.groupProgress);
     const currentGroup = groups.find((group) => group.steps.some((groupStep) => !groupStep.completed));
-    if (currentGroup && !groupProgress[currentGroup.id]) {
-      const nowIso = new Date().toISOString();
-      const start = matterWithProgress?.engagementDate && matterWithProgress.engagementDate < new Date()
-        ? matterWithProgress.engagementDate.toISOString()
-        : nowIso;
-      groupProgress[currentGroup.id] = { startedAt: start };
+    if (currentGroup) {
+      const currentGroupOrder = currentGroup.sortOrder;
+      const currentGroupFirstStep = [...currentGroup.steps].sort((a, b) => a.sortOrder - b.sortOrder)[0];
+      const firstStepCompletedAt = currentGroupFirstStep ? completionBaseline(currentGroupFirstStep) : null;
+      const previousStage = [...groups]
+        .filter((group) => group.sortOrder < currentGroupOrder)
+        .sort((a, b) => b.sortOrder - a.sortOrder)[0];
+      const previousStageLastStep = previousStage
+        ? [...previousStage.steps]
+            .filter((step) => step.completed)
+            .sort((a, b) => b.sortOrder - a.sortOrder)[0]
+        : null;
+      const previousStageLastStepCompletedAt = previousStageLastStep
+        ? completionBaseline(previousStageLastStep)
+        : null;
+      const previousCompletionTimes = groups
+        .filter((group) => group.sortOrder < currentGroupOrder)
+        .flatMap((group) => group.steps)
+        .filter((groupStep) => groupStep.completed && groupStep.completedAt)
+        .map((groupStep) => groupStep.completedAt!.getTime());
+      const fallbackStart = typeof previousStageLastStepCompletedAt === "number"
+        ? new Date(Math.min(previousStageLastStepCompletedAt, Date.now()))
+        : typeof firstStepCompletedAt === "number"
+          ? new Date(Math.min(firstStepCompletedAt, Date.now()))
+        : previousCompletionTimes.length > 0
+          ? new Date(Math.max(...previousCompletionTimes))
+          : (() => {
+              const currentGroupCompletedTimes = currentGroup.steps
+                .filter((groupStep) => groupStep.completed && groupStep.completedAt)
+                .map((groupStep) => groupStep.completedAt!.getTime())
+                .sort((a, b) => a - b);
+              if (currentGroupCompletedTimes.length > 0) {
+                return new Date(Math.min(currentGroupCompletedTimes[0], Date.now()));
+              }
+              const currentGroupFirstStepCreated = currentGroup.steps
+                .map((groupStep) => groupStep.createdAt.getTime())
+                .sort((a, b) => a - b)[0];
+              if (currentGroupFirstStepCreated) {
+                return new Date(currentGroupFirstStepCreated);
+              }
+              return new Date();
+            })();
+
+      const existingStart = groupProgress[currentGroup.id]?.startedAt
+        ? new Date(groupProgress[currentGroup.id].startedAt)
+        : null;
+      const needsInitialize = !existingStart || Number.isNaN(existingStart.getTime());
+      const needsRepair =
+        !!existingStart &&
+        !Number.isNaN(existingStart.getTime()) &&
+        existingStart.getTime() > Date.now() + 60_000;
+
+      if (needsInitialize || needsRepair) {
+        groupProgress[currentGroup.id] = { startedAt: fallbackStart.toISOString() };
+      }
     }
 
     await tx.matter.update({
       where: { id: matterId },
       data: {
         lastActivityAt: new Date(),
-        groupProgress
+        groupProgress: buildGroupProgressPayload(groupProgress, {
+          existingRaw: matterWithProgress?.groupProgress
+        }) as Prisma.InputJsonValue
       }
     });
   });
@@ -124,6 +213,10 @@ export async function PATCH(request: Request, { params }: Params) {
     step: {
       id: step.id,
       completed: hasCompleted ? payload.completed : step.completed,
+      completedAt:
+        payload.completedAt === undefined
+          ? step.completedAt?.toISOString() ?? null
+          : completedAt?.toISOString() ?? null,
       dueAt: payload.dueAt === undefined ? step.dueAt : dueAt?.toISOString() ?? null
     }
   });

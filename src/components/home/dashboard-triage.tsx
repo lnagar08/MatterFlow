@@ -5,11 +5,13 @@ import { AlertOctagon, AlertTriangle, BriefcaseBusiness, Siren } from "lucide-re
 import { DashboardCard } from "@/components/dashboard-card";
 import type { HomeMetrics } from "@/lib/home-data";
 
-type DashboardAction = "needs-attention" | "overdue" | "penalty-box" | "workload";
+type DashboardAction = "in-flow" | "needs-attention" | "overdue" | "penalty-box" | "all-active";
 
 type Row = {
+  isOnTrack: boolean;
   isAtRisk: boolean;
   isOverdue: boolean;
+  isBottlenecked: boolean;
   isPenaltyBox: boolean;
 };
 
@@ -21,33 +23,52 @@ type Props = {
 };
 
 export function DashboardTriage({ metrics, rows, activeAction, onAction }: Props) {
+  // Set to false to restore previous 4-card layout quickly.
+  const ENABLE_ACTIVE_MATTERS_CARD = true;
+
   const workload = rows.length;
-  const needsAttention = rows.filter((row) => row.isAtRisk || row.isPenaltyBox).length;
-  const overdue = rows.filter((row) => row.isOverdue).length;
+  const inFlow = rows.filter((row) => row.isOnTrack).length;
+  const atFlowRisk = rows.filter((row) => row.isAtRisk).length;
+  const outOfFlow = rows.filter((row) => row.isOverdue || row.isBottlenecked).length;
   const penalty = rows.filter((row) => row.isPenaltyBox).length;
   const divisor = Math.max(1, workload);
 
   return (
-    <section className="dashboard-grid" aria-label="Flow control">
+    <section className={`dashboard-grid ${ENABLE_ACTIVE_MATTERS_CARD ? "dashboard-grid-five" : ""}`} aria-label="Flow control">
+      {ENABLE_ACTIVE_MATTERS_CARD ? (
+        <DashboardCard
+          title="Active Matters"
+          subtitle={`${Math.max(0, workload - inFlow)} need attention`}
+          value={String(workload)}
+          unit="active"
+          barPercent={100}
+          accent="black"
+          icon={BriefcaseBusiness}
+          active={activeAction === "all-active" || activeAction === "none"}
+          ariaLabel="Show all active matters"
+          onClick={() => onAction("all-active")}
+        />
+      ) : null}
+
       <DashboardCard
         title="In Flow"
-        subtitle={`${Math.max(0, workload - needsAttention)} in flow`}
-        value={String(workload)}
-        unit="active"
-        barPercent={Math.min(100, 60 + (needsAttention / divisor) * 40)}
+        subtitle={`${inFlow} in flow`}
+        value={String(inFlow)}
+        unit={inFlow === 1 ? "matter" : "matters"}
+        barPercent={(inFlow / divisor) * 100}
         accent="blue"
         icon={BriefcaseBusiness}
-        active={activeAction === "workload"}
-        ariaLabel="Show all active matters"
-        onClick={() => onAction("workload")}
+        active={activeAction === "in-flow"}
+        ariaLabel="Show in-flow matters"
+        onClick={() => onAction("in-flow")}
       />
 
       <DashboardCard
         title="At Flow Risk"
-        subtitle={`Due soon or slipping (${metrics.triage.operational.dueSoonHours}h window)`}
-        value={String(needsAttention)}
-        unit={needsAttention === 1 ? "matter" : "matters"}
-        barPercent={(needsAttention / divisor) * 100}
+        subtitle={`Due within ${metrics.triage.operational.dueSoonHours}h`}
+        value={String(atFlowRisk)}
+        unit={atFlowRisk === 1 ? "matter" : "matters"}
+        barPercent={(atFlowRisk / divisor) * 100}
         accent="amber"
         icon={AlertTriangle}
         active={activeAction === "needs-attention"}
@@ -57,14 +78,14 @@ export function DashboardTriage({ metrics, rows, activeAction, onAction }: Props
 
       <DashboardCard
         title="Out of Flow"
-        subtitle="Incomplete steps due before today"
-        value={String(overdue)}
-        unit={overdue === 1 ? "matter" : "matters"}
-        barPercent={(overdue / divisor) * 100}
+        subtitle="Overdue steps or stage delay"
+        value={String(outOfFlow)}
+        unit={outOfFlow === 1 ? "matter" : "matters"}
+        barPercent={(outOfFlow / divisor) * 100}
         accent="red"
         icon={AlertOctagon}
         active={activeAction === "overdue"}
-        ariaLabel="Filter overdue matters"
+        ariaLabel="Filter out of flow matters"
         onClick={() => onAction("overdue")}
       />
 

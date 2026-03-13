@@ -1,8 +1,7 @@
 import { getGroupProgressStart, parseGroupProgress } from "@/lib/group-progress";
-import { isOverdue, resolveStepDueDate } from "@/lib/step-overdue";
+import { isDueSoon as isStepDueSoon, isOverdue, resolveStepDueDate } from "@/lib/step-overdue";
 
 const DAY_MS = 1000 * 60 * 60 * 24;
-const HOUR_MS = 1000 * 60 * 60;
 
 type FlagSettings = {
   bottleneckNoProgressDays: number;
@@ -13,6 +12,7 @@ type FlagSettings = {
   groupTimingEnabled?: boolean;
   agingDays: number;
   dueSoonHours: number;
+  atRiskStageWindowDays?: number;
   penaltyBoxOpenDays: number;
   penaltyIncludeOverdue?: boolean;
   penaltyIncludeAging?: boolean;
@@ -92,6 +92,14 @@ function toValidDate(value: Date | string | null | undefined): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function completionBaseline(step: MatterInput["steps"][number]) {
+  return (
+    toValidDate(step.completedAt ?? step.completedOn)?.getTime() ??
+    toValidDate(step.dueAt)?.getTime() ??
+    null
+  );
+}
+
 function startOfDayLocal(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
@@ -101,7 +109,6 @@ export function diffInDays(a: Date, b: Date) {
 }
 
 export function computeMatterFlags(matter: MatterInput, settings: FlagSettings, now = new Date()): MatterFlags {
-  const nowMs = now.getTime();
   const openSteps = matter.steps.filter((step) => !(step.completed ?? step.isCompleted ?? false));
   const dueContext = {
     engagementDate: matter.engagementDate ?? null,
@@ -109,12 +116,8 @@ export function computeMatterFlags(matter: MatterInput, settings: FlagSettings, 
   };
 
   const overdueSteps = openSteps.filter((step) => isOverdue(step, dueContext, now));
-  const dueSoonSteps = openSteps.filter((step) => {
-    const dueDate = resolveStepDueDate(step, dueContext);
-    if (!dueDate) return false;
-    const dueMs = dueDate.getTime();
-    return dueMs >= nowMs && dueMs <= nowMs + settings.dueSoonHours * HOUR_MS;
-  });
+  const dueSoonSteps = openSteps.filter((step) => isStepDueSoon(step, dueContext, settings.dueSoonHours, now));
+  const nowMs = now.getTime();
 
   const completedTimes = matter.steps
     .filter((step) => (step.completed ?? step.isCompleted ?? false) && (step.completedAt ?? step.completedOn))
@@ -140,6 +143,7 @@ export function computeMatterFlags(matter: MatterInput, settings: FlagSettings, 
   const groupProgress = parseGroupProgress(matter.groupProgress);
 
   let groupDurationExceeded = false;
+  let stageNearLimit = false;
   let bottleneckReason: string | null = null;
   let bottleneckMeta: MatterFlags["bottleneckMeta"] = {
     groupName: null,
@@ -158,6 +162,25 @@ export function computeMatterFlags(matter: MatterInput, settings: FlagSettings, 
         .reduce((max, offset) => Math.max(max, offset), 0) || null;
     const expected = currentGroup?.expectedDurationDays ?? derivedExpectedDays ?? settings.defaultGroupExpectedDays;
     if (expected && expected > 0) {
+      const currentStageFirstStep = matter.steps
+        .filter((step) => step.groupId === currentOpenStep.groupId)
+        .sort((a, b) => a.sortOrder - b.sortOrder)[0];
+      const firstStepCompletedAtMs = currentStageFirstStep ? completionBaseline(currentStageFirstStep) : null;
+      const previousStage = [...matter.groups]
+        .filter((group) => group.sortOrder < (currentGroup?.sortOrder ?? 0))
+        .sort((a, b) => b.sortOrder - a.sortOrder)[0];
+      const previousStageLastCompletedStep = previousStage
+        ? matter.steps
+            .filter(
+              (step) =>
+                step.groupId === previousStage.id &&
+                (step.completed ?? step.isCompleted ?? false)
+            )
+            .sort((a, b) => b.sortOrder - a.sortOrder)[0]
+        : null;
+      const previousStageLastStepCompletedAtMs = previousStageLastCompletedStep
+        ? completionBaseline(previousStageLastCompletedStep)
+        : null;
       const previousGroups = matter.groups
         .filter((group) => group.sortOrder < (currentGroup?.sortOrder ?? 0))
         .map((group) => group.id);
@@ -169,28 +192,91 @@ export function computeMatterFlags(matter: MatterInput, settings: FlagSettings, 
             (step.completed ?? step.isCompleted ?? false)
         )
         .map((step) => {
-          const date = toValidDate(step.completedAt ?? step.completedOn ?? step.updatedAt ?? step.createdAt);
+          const date = toValidDate(step.completedAt ?? step.completedOn);
           return date?.getTime();
         })
         .filter((value): value is number => typeof value === "number");
 
-      const defaultStart =
-        previousGroupCompletions.length > 0
+      const anchoredStart =
+        typeof firstStepCompletedAtMs === "number"
+          ? new Date(Math.min(firstStepCompletedAtMs, nowMs))
+          : typeof previousStageLastStepCompletedAtMs === "number"
+            ? new Date(Math.min(previousStageLastStepCompletedAtMs, nowMs))
+            : null;
+      const defaultStart = anchoredStart
+        ? anchoredStart
+        : previousGroupCompletions.length > 0
           ? new Date(Math.max(...previousGroupCompletions))
-          : new Date(matter.engagementDate ?? matter.createdAt);
+          : (() => {
+              const engagementOrCreated = new Date(matter.engagementDate ?? matter.createdAt);
+              const currentGroupCompletedTimes = matter.steps
+                .filter(
+                  (step) =>
+                    step.groupId === currentOpenStep.groupId &&
+                    (step.completed ?? step.isCompleted ?? false)
+                )
+                .map((step) => toValidDate(step.completedAt ?? step.completedOn)?.getTime())
+                .filter((value): value is number => typeof value === "number")
+                .sort((a, b) => a - b);
+              if (currentGroupCompletedTimes.length > 0) {
+                return new Date(Math.min(currentGroupCompletedTimes[0], nowMs));
+              }
+              const currentGroupFirstStepCreated = matter.steps
+                .filter((step) => step.groupId === currentOpenStep.groupId)
+                .map((step) => toValidDate(step.createdAt)?.getTime())
+                .filter((value): value is number => typeof value === "number")
+                .sort((a, b) => a - b)[0];
+              if (currentGroupFirstStepCreated) {
+                return new Date(Math.max(engagementOrCreated.getTime(), currentGroupFirstStepCreated));
+              }
+              return engagementOrCreated;
+            })();
 
-      const progressStart = getGroupProgressStart(groupProgress, currentOpenStep.groupId, defaultStart);
-      const groupDays = Math.floor((nowMs - progressStart.getTime()) / DAY_MS);
+      const currentGroupCompletedTimes = matter.steps
+        .filter(
+          (step) =>
+            step.groupId === currentOpenStep.groupId &&
+            (step.completed ?? step.isCompleted ?? false)
+        )
+        .map((step) => toValidDate(step.completedAt ?? step.completedOn)?.getTime())
+        .filter((value): value is number => typeof value === "number")
+        .sort((a, b) => a - b);
+      const upperBound =
+        typeof firstStepCompletedAtMs === "number"
+          ? new Date(Math.min(firstStepCompletedAtMs, nowMs))
+          : currentGroupCompletedTimes.length > 0
+          ? new Date(Math.min(currentGroupCompletedTimes[0], nowMs))
+          : now;
+
+      const progressStart =
+        anchoredStart ??
+        getGroupProgressStart(groupProgress, currentOpenStep.groupId, defaultStart, upperBound);
+      const groupDays = diffInDays(now, progressStart);
       const graceDays = Math.max(0, settings.groupGraceDays ?? 2);
       if (groupDays > expected + graceDays) {
+        const limit = expected + graceDays;
+        const overBy = groupDays - limit;
         groupDurationExceeded = true;
-        bottleneckReason = `Current stage exceeded expected time (${groupDays}d > Expected ${expected + graceDays}d)`;
+        bottleneckReason = `Current stage ${groupDays}d elapsed (target ${expected}d + ${graceDays}d grace; ${overBy}d over limit)`;
         bottleneckMeta = {
           groupName: currentGroup?.title ?? `Group ${currentGroup?.sortOrder ?? ""}`.trim(),
           expectedDays: expected,
           elapsedDays: groupDays,
           graceDays
         };
+      } else {
+        const windowDays = Math.max(0, settings.atRiskStageWindowDays ?? 2);
+        const limit = expected + graceDays;
+        const daysToLimit = limit - groupDays;
+        if (windowDays > 0 && daysToLimit >= 0 && daysToLimit <= windowDays) {
+          stageNearLimit = true;
+          bottleneckMeta = {
+            groupName: currentGroup?.title ?? `Group ${currentGroup?.sortOrder ?? ""}`.trim(),
+            expectedDays: expected,
+            elapsedDays: groupDays,
+            graceDays
+          };
+        }
       }
     }
   }
@@ -216,8 +302,11 @@ export function computeMatterFlags(matter: MatterInput, settings: FlagSettings, 
   const isPenaltyBox = !isClosed && Boolean(engagementDate) && daysOpen > settings.penaltyBoxOpenDays;
   const isAging = !isClosed && Boolean(engagementDate) && daysOpen > settings.agingDays;
 
-  const needsAttention = hasOverdue || isBottlenecked || isDueSoon;
-  const isAtRisk = needsAttention;
+  // Home classification is exclusive by precedence:
+  // Penalty Box > Bottlenecked/Overdue > At Risk > On Track.
+  // At Risk is only used when a matter is approaching risk but not already in a higher-severity bucket.
+  const isAtRisk = !isPenaltyBox && !hasOverdue && !isBottlenecked && (isDueSoon || stageNearLimit);
+  const needsAttention = hasOverdue || isBottlenecked || isDueSoon || stageNearLimit;
 
   const penaltyReasons: string[] = [];
   if (isPenaltyBox) {
@@ -239,6 +328,9 @@ export function computeMatterFlags(matter: MatterInput, settings: FlagSettings, 
     reason = bottleneckReason ?? "Current Flow Stage exceeded expected time";
   } else if (isDueSoon) {
     reason = `${dueSoonSteps.length} due soon`;
+  } else if (stageNearLimit && bottleneckMeta.elapsedDays !== null && bottleneckMeta.expectedDays !== null) {
+    const remaining = Math.max(0, bottleneckMeta.expectedDays - bottleneckMeta.elapsedDays);
+    reason = remaining === 0 ? "Current Flow Stage hits expected duration today" : `${remaining} day${remaining === 1 ? "" : "s"} left in stage`;
   }
 
   const topIssues: TopIssue[] = [];
@@ -272,9 +364,11 @@ export function computeMatterFlags(matter: MatterInput, settings: FlagSettings, 
 
   const statusLabel: MatterFlags["statusLabel"] = isPenaltyBox
     ? "Penalty Box"
-    : needsAttention
-      ? "Needs Attention"
-      : "On Track";
+    : hasOverdue || isBottlenecked
+      ? "Bottlenecked"
+      : isAtRisk
+        ? "Needs Attention"
+        : "On Track";
 
   return {
     isOverdue: hasOverdue,

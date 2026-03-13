@@ -52,6 +52,34 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+## Environment strategy
+
+- Local dev: `.env.local` (and `.env`) should use SQLite:
+  - `DATABASE_URL="file:./dev.db"`
+  - `SHADOW_DATABASE_URL="file:./shadow.db"`
+- Do not keep `.env.production.local` in local development unless intentionally testing production env behavior.
+- Backup env files should stay outside active env names.
+
+## Build / migrations
+
+- Local build (no migration deploy step):
+
+```bash
+npm run build
+```
+
+- Deployment build (runs `prisma migrate deploy` first):
+
+```bash
+npm run build:deploy
+```
+
+- Manual migration deploy:
+
+```bash
+npm run prisma:migrate:deploy
+```
+
 ## Auth notes
 
 - Default local flow uses direct email sign-in (no inbox step) via NextAuth credentials provider.

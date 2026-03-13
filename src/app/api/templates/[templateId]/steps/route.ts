@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getCurrentUserContext } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
+import { getTemplateSnapshot, snapshotSignature, syncTemplateToMatters } from "@/lib/template-sync";
 
 type Params = { params: Promise<{ templateId: string }> };
 
@@ -22,6 +23,8 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   const { templateId } = await params;
+  const previousTemplate = await getTemplateSnapshot(templateId);
+  const previousSignature = previousTemplate ? snapshotSignature(previousTemplate) : null;
   const template = await prisma.matterTemplate.findFirst({
     where: {
       id: templateId,
@@ -76,6 +79,15 @@ export async function POST(request: Request, { params }: Params) {
       sortOrder: (last?.sortOrder ?? 0) + 1
     }
   });
+
+  if (previousSignature) {
+    await syncTemplateToMatters({
+      firmId: context.membership.firmId,
+      templateId,
+      previousSignature,
+      previousSnapshot: previousTemplate
+    });
+  }
 
   return NextResponse.json({ step });
 }

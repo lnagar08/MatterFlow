@@ -1,0 +1,90 @@
+<svg width="2048" height="620" viewBox="0 0 2048 620" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="2048" y2="620" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FBFF"/>
+      <stop offset="1" stop-color="#EEF3FC"/>
+    </linearGradient>
+    <filter id="shadow" x="0" y="0" width="2048" height="620" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#0F172A" flood-opacity="0.10"/>
+    </filter>
+    <linearGradient id="segIn" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#20B173"/>
+      <stop offset="1" stop-color="#2AC987"/>
+    </linearGradient>
+    <linearGradient id="segRisk" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#E7A80F"/>
+      <stop offset="1" stop-color="#F6C44F"/>
+    </linearGradient>
+    <linearGradient id="segOut" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#E65A5A"/>
+      <stop offset="1" stop-color="#F07A7A"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="2048" height="620" fill="url(#bg)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="64" y="50" width="1920" height="510" rx="30" fill="#FFFFFF" fill-opacity="0.92" stroke="#D8E3F6"/>
+  </g>
+
+  <text x="100" y="125" fill="#172744" font-family="Inter, system-ui, sans-serif" font-size="52" font-weight="800">Flow Timeline</text>
+  <text x="1655" y="125" fill="#5A7196" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Stage-by-stage progress overview</text>
+
+  <!-- connected timeline line (main requested visual) -->
+  <line x1="150" y1="232" x2="1860" y2="232" stroke="#C9D5E8" stroke-width="14" stroke-linecap="round"/>
+
+  <!-- color segments reflecting state by stage -->
+  <!-- Intake = In Flow/Completed -->
+  <line x1="150" y1="232" x2="600" y2="232" stroke="url(#segIn)" stroke-width="14" stroke-linecap="round"/>
+  <!-- PPM/Document Drafting = At Flow Risk -->
+  <line x1="600" y1="232" x2="1090" y2="232" stroke="url(#segRisk)" stroke-width="14" stroke-linecap="round"/>
+  <!-- SEC/Blue Sky = Out of Flow -->
+  <line x1="1090" y1="232" x2="1540" y2="232" stroke="url(#segOut)" stroke-width="14" stroke-linecap="round"/>
+  <!-- Closing = Not entered yet -->
+  <line x1="1540" y1="232" x2="1860" y2="232" stroke="#B7C5DD" stroke-width="14" stroke-linecap="round"/>
+
+  <!-- nodes -->
+  <circle cx="150" cy="232" r="33" fill="#E2F8ED" stroke="#22B574" stroke-width="4"/>
+  <text x="137" y="246" fill="#138C58" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="900">✓</text>
+
+  <circle cx="600" cy="232" r="33" fill="#FFF4DF" stroke="#EDB02A" stroke-width="4"/>
+  <text x="586" y="246" fill="#AF6F00" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="900">⚠</text>
+
+  <circle cx="1090" cy="232" r="33" fill="#FFECEF" stroke="#EA6A7B" stroke-width="4"/>
+  <text x="1077" y="246" fill="#C5324D" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="900">!</text>
+
+  <circle cx="1540" cy="232" r="33" fill="#EEF3FB" stroke="#93A7C6" stroke-width="4"/>
+  <circle cx="1860" cy="232" r="33" fill="#EEF3FB" stroke="#93A7C6" stroke-width="4"/>
+
+  <!-- stage chips aligned to nodes -->
+  <rect x="84" y="152" width="180" height="72" rx="36" fill="#F4FAFF" stroke="#C7D6ED"/>
+  <text x="124" y="198" fill="#294872" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="700">Intake</text>
+
+  <rect x="500" y="152" width="358" height="72" rx="36" fill="#F4FAFF" stroke="#C7D6ED"/>
+  <text x="548" y="198" fill="#294872" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="700">PPM/Document Drafting</text>
+
+  <rect x="986" y="152" width="335" height="72" rx="36" fill="#F4FAFF" stroke="#C7D6ED"/>
+  <text x="1032" y="198" fill="#294872" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="700">SEC/Blue Sky Filings</text>
+
+  <rect x="1476" y="152" width="236" height="72" rx="36" fill="#F4FAFF" stroke="#C7D6ED"/>
+  <text x="1522" y="198" fill="#294872" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="700">Closing</text>
+
+  <!-- detail cards below, same concept as your screenshot -->
+  <rect x="90" y="300" width="590" height="220" rx="18" fill="#F2FBF7" stroke="#AEE2C8"/>
+  <text x="120" y="355" fill="#0F7A4E" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="800">Intake</text>
+  <text x="560" y="355" fill="#0F7A4E" font-family="Inter, system-ui, sans-serif" font-size="46" font-weight="700">Completed</text>
+  <text x="120" y="408" fill="#4D6A8F" font-family="Inter, system-ui, sans-serif" font-size="42" font-weight="600">6 days in stage</text>
+  <text x="120" y="458" fill="#4D6A8F" font-family="Inter, system-ui, sans-serif" font-size="42" font-weight="600">3/3 Flow Steps complete</text>
+
+  <rect x="702" y="300" width="590" height="220" rx="18" fill="#FFF9EE" stroke="#F0C98A"/>
+  <text x="732" y="355" fill="#9B6200" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="800">PPM/Document Drafting</text>
+  <text x="1125" y="355" fill="#BA7600" font-family="Inter, system-ui, sans-serif" font-size="46" font-weight="700">At Flow Risk</text>
+  <text x="732" y="408" fill="#5A7398" font-family="Inter, system-ui, sans-serif" font-size="42" font-weight="600">31 days in stage</text>
+  <text x="732" y="458" fill="#5A7398" font-family="Inter, system-ui, sans-serif" font-size="42" font-weight="600">3/4 Flow Steps complete</text>
+
+  <rect x="1314" y="300" width="640" height="220" rx="18" fill="#FFF5F8" stroke="#F2B3C2"/>
+  <text x="1344" y="355" fill="#B51F40" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="800">SEC/Blue Sky Filings</text>
+  <text x="1768" y="355" fill="#C5294B" font-family="Inter, system-ui, sans-serif" font-size="46" font-weight="700">Out of Flow</text>
+  <text x="1344" y="408" fill="#5A7398" font-family="Inter, system-ui, sans-serif" font-size="42" font-weight="600">21 days in stage</text>
+  <text x="1344" y="458" fill="#5A7398" font-family="Inter, system-ui, sans-serif" font-size="42" font-weight="600">5/8 Flow Steps complete</text>
+</svg>

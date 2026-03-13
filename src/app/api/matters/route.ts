@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
 import { requireFirmMembership } from "@/lib/firm-access";
-import { parseGroupProgress } from "@/lib/group-progress";
+import { buildGroupProgressPayload, parseGroupProgress } from "@/lib/group-progress";
 import { prisma } from "@/lib/prisma";
 
 type CreateMatterPayload = {
@@ -145,11 +146,15 @@ export async function POST(request: Request) {
       const firstGroup = orderedCreatedGroups.sort((a, b) => a.sortOrder - b.sortOrder)[0];
       if (firstGroup) {
         const groupProgress = parseGroupProgress(matter.groupProgress);
-        const start = engagementDate < new Date() ? engagementDate : new Date();
-        groupProgress[firstGroup.id] = { startedAt: start.toISOString() };
+        groupProgress[firstGroup.id] = { startedAt: new Date().toISOString() };
         await prisma.matter.update({
           where: { id: matter.id },
-          data: { groupProgress }
+          data: {
+            groupProgress: buildGroupProgressPayload(groupProgress, {
+              templateId: template.id,
+              existingRaw: matter.groupProgress
+            }) as Prisma.InputJsonValue
+          }
         });
       }
     }

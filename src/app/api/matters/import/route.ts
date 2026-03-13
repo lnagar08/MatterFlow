@@ -143,8 +143,7 @@ async function applyTemplateToMatter(args: { matterId: string; firmId: string; t
       select: { engagementDate: true, groupProgress: true }
     });
     const progress = parseGroupProgress(matter?.groupProgress);
-    const start = matter?.engagementDate && matter.engagementDate < new Date() ? matter.engagementDate : new Date();
-    progress[firstGroup.id] = { startedAt: start.toISOString() };
+    progress[firstGroup.id] = { startedAt: new Date().toISOString() };
     await prisma.matter.update({
       where: { id: args.matterId },
       data: { groupProgress: progress }

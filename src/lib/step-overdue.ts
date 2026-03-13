@@ -1,4 +1,5 @@
 const DAY_MS = 1000 * 60 * 60 * 24;
+const HOUR_MS = 1000 * 60 * 60;
 
 type StepLike = {
   completed?: boolean;
@@ -55,3 +56,27 @@ export function isOverdue(step: StepLike, context: DueDateContext, now = new Dat
   return overdueDays(step, context, now) > 0;
 }
 
+function endOfLocalDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+}
+
+export function isDueSoon(
+  step: StepLike,
+  context: DueDateContext,
+  dueSoonHours: number,
+  now = new Date()
+) {
+  if (step.completed || step.completedAt) return false;
+  const dueDate = resolveStepDueDate(step, context);
+  if (!dueDate) return false;
+  if (isOverdue(step, context, now)) return false;
+  const cutoff = endOfLocalDay(dueDate).getTime();
+  return cutoff - now.getTime() <= dueSoonHours * HOUR_MS;
+}
+
+export function daysUntilDue(step: StepLike, context: DueDateContext, now = new Date()) {
+  const dueDate = resolveStepDueDate(step, context);
+  if (!dueDate) return null;
+  const diff = toStartOfLocalDay(dueDate).getTime() - toStartOfLocalDay(now).getTime();
+  return Math.max(0, Math.ceil(diff / DAY_MS));
+}

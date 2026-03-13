@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getCurrentUserContext } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
+import { getTemplateSnapshot, snapshotSignature, syncTemplateToMatters } from "@/lib/template-sync";
 
 type Params = { params: Promise<{ stepId: string }> };
 
@@ -34,6 +35,8 @@ export async function PATCH(request: Request, { params }: Params) {
   if (!step) {
     return NextResponse.json({ error: "Step not found." }, { status: 404 });
   }
+  const previousTemplate = await getTemplateSnapshot(step.templateId);
+  const previousSignature = previousTemplate ? snapshotSignature(previousTemplate) : null;
 
   const payload = (await request.json()) as Payload;
 
@@ -71,6 +74,15 @@ export async function PATCH(request: Request, { params }: Params) {
     }
   });
 
+  if (previousSignature) {
+    await syncTemplateToMatters({
+      firmId: context.membership.firmId,
+      templateId: step.templateId,
+      previousSignature,
+      previousSnapshot: previousTemplate
+    });
+  }
+
   return NextResponse.json({ ok: true });
 }
 
@@ -84,6 +96,20 @@ export async function DELETE(_request: Request, { params }: Params) {
   }
 
   const { stepId } = await params;
+  const step = await prisma.templateStep.findFirst({
+    where: {
+      id: stepId,
+      template: {
+        firmId: context.membership.firmId
+      }
+    }
+  });
+
+  if (!step) {
+    return NextResponse.json({ error: "Step not found." }, { status: 404 });
+  }
+  const previousTemplate = await getTemplateSnapshot(step.templateId);
+  const previousSignature = previousTemplate ? snapshotSignature(previousTemplate) : null;
 
   const result = await prisma.templateStep.deleteMany({
     where: {
@@ -96,6 +122,15 @@ export async function DELETE(_request: Request, { params }: Params) {
 
   if (result.count === 0) {
     return NextResponse.json({ error: "Step not found." }, { status: 404 });
+  }
+
+  if (previousSignature) {
+    await syncTemplateToMatters({
+      firmId: context.membership.firmId,
+      templateId: step.templateId,
+      previousSignature,
+      previousSnapshot: previousTemplate
+    });
   }
 
   return NextResponse.json({ ok: true });

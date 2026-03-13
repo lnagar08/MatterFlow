@@ -9,6 +9,7 @@ export const DEFAULT_FIRM_RULE_SETTINGS = {
   groupTimingEnabled: true,
   agingDays: 30,
   dueSoonHours: 48,
+  atRiskStageWindowDays: 2,
   penaltyBoxOpenDays: 40,
   penaltyIncludeOverdue: true,
   penaltyIncludeBottleneck: true,

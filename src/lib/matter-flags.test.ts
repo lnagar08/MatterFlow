@@ -14,12 +14,13 @@ const settings = {
   groupTimingEnabled: true,
   agingDays: 30,
   dueSoonHours: 48,
+  atRiskStageWindowDays: 2,
   penaltyBoxOpenDays: 40,
   penaltyIncludeOverdue: true,
   penaltyIncludeAging: true
 };
 
-function baseMatter() {
+function baseMatter(): any {
   return {
     createdAt: new Date("2026-01-01T12:00:00.000Z"),
     updatedAt: new Date("2026-02-28T12:00:00.000Z"),
@@ -98,3 +99,12 @@ test("marks on track when no risk flags are present", () => {
   assert.equal(flags.statusLabel, "On Track");
 });
 
+test("marks at risk when stage is within window days of expected+grace limit", () => {
+  const matter = baseMatter();
+  matter.groupProgress = { g1: { startedAt: "2026-02-20T12:00:00.000Z" } }; // 9d elapsed at now
+  matter.groups[0].expectedDurationDays = 7; // limit = 9 with grace 2
+  const flags = computeMatterFlags(matter, settings, now);
+  assert.equal(flags.isBottlenecked, false);
+  assert.equal(flags.isAtRisk, true);
+  assert.equal(flags.statusLabel, "Needs Attention");
+});

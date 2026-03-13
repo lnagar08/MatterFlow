@@ -51,6 +51,7 @@ export default async function PenaltyBoxPage() {
           groupTimingEnabled: settings.groupTimingEnabled,
           agingDays: settings.agingDays,
           dueSoonHours: settings.dueSoonHours,
+          atRiskStageWindowDays: settings.atRiskStageWindowDays,
           penaltyBoxOpenDays: settings.penaltyBoxOpenDays,
           penaltyIncludeOverdue: settings.penaltyIncludeOverdue,
           penaltyIncludeAging: settings.penaltyIncludeAging

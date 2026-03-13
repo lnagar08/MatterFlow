@@ -102,6 +102,7 @@ export default async function MatterDetailPage({ params, searchParams }: MatterD
       groupTimingEnabled: settings.groupTimingEnabled,
       agingDays: settings.agingDays,
       dueSoonHours: settings.dueSoonHours,
+      atRiskStageWindowDays: settings.atRiskStageWindowDays,
       penaltyBoxOpenDays: settings.penaltyBoxOpenDays,
       penaltyIncludeOverdue: settings.penaltyIncludeOverdue,
       penaltyIncludeAging: settings.penaltyIncludeAging
@@ -114,12 +115,17 @@ export default async function MatterDetailPage({ params, searchParams }: MatterD
     id: group.id,
     title: group.title,
     indentLevel: group.indentLevel,
+    sortOrder: group.sortOrder,
     expectedDurationDays: group.expectedDurationDays ?? null,
     steps: group.steps.map((step) => ({
       id: step.id,
       label: step.label,
       completed: step.completed,
       indentLevel: step.indentLevel,
+      sortOrder: step.sortOrder,
+      completedAt: step.completedAt ? step.completedAt.toISOString() : null,
+      createdAt: step.createdAt.toISOString(),
+      updatedAt: step.updatedAt.toISOString(),
       dueDaysOffset: step.dueDaysOffset,
       dueAt: step.dueAt ? step.dueAt.toISOString() : null
     }))
@@ -129,6 +135,10 @@ export default async function MatterDetailPage({ params, searchParams }: MatterD
     label: step.label,
     completed: step.completed,
     indentLevel: step.indentLevel,
+    sortOrder: step.sortOrder,
+    completedAt: step.completedAt ? step.completedAt.toISOString() : null,
+    createdAt: step.createdAt.toISOString(),
+    updatedAt: step.updatedAt.toISOString(),
     dueDaysOffset: step.dueDaysOffset,
     dueAt: step.dueAt ? step.dueAt.toISOString() : null
   }));
@@ -202,6 +212,12 @@ export default async function MatterDetailPage({ params, searchParams }: MatterD
         isPenaltyBox={flags.isPenaltyBox}
         penaltyDaysOpen={flags.daysOpen}
         penaltyThreshold={settings.penaltyBoxOpenDays}
+        dueSoonHours={settings.dueSoonHours}
+        atRiskStageWindowDays={settings.atRiskStageWindowDays}
+        bottleneckNoProgressDays={settings.bottleneckNoProgressDays}
+        noMovementDays={settings.noMovementDays}
+        bottleneckDays={settings.bottleneckDays}
+        agingDays={settings.agingDays}
         amountPaid={asCurrency(matter.amountPaid)}
         blurb={matter.blurb}
         checklistGroups={checklistGroups}

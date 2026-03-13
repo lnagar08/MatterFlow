@@ -1,4 +1,5 @@
 export type GroupProgressMap = Record<string, { startedAt: string }>;
+const TEMPLATE_LINK_KEY = "__templateLink";
 
 export function parseGroupProgress(value: unknown): GroupProgressMap {
   if (!value || typeof value !== "object") return {};
@@ -18,11 +19,58 @@ export function parseGroupProgress(value: unknown): GroupProgressMap {
 export function getGroupProgressStart(
   progress: GroupProgressMap,
   groupId: string,
-  fallback: Date
+  fallback: Date,
+  upperBound?: Date
 ) {
   const raw = progress[groupId]?.startedAt;
-  if (!raw) return fallback;
+  const upper = upperBound && !Number.isNaN(upperBound.getTime()) ? upperBound : null;
+  const boundedFallback = upper && fallback.getTime() > upper.getTime() ? upper : fallback;
+  if (!raw) {
+    return boundedFallback;
+  }
   const date = new Date(raw);
-  return Number.isNaN(date.getTime()) ? fallback : date;
+  if (Number.isNaN(date.getTime())) {
+    return boundedFallback;
+  }
+  // Clamp persisted stage start into a sensible window:
+  // - not earlier than computed baseline (fallback)
+  // - not later than known completion evidence in this stage (upperBound)
+  const lowerBound = fallback.getTime();
+  const upperBoundMs = upper?.getTime();
+  if (date.getTime() < lowerBound) {
+    return boundedFallback;
+  }
+  if (typeof upperBoundMs === "number" && date.getTime() > upperBoundMs) {
+    return new Date(upperBoundMs);
+  }
+  return date;
 }
 
+export function getTemplateLink(value: unknown): string | null {
+  if (!value || typeof value !== "object") return null;
+  const source = value as Record<string, unknown>;
+  const raw = source[TEMPLATE_LINK_KEY];
+  if (!raw || typeof raw !== "object") return null;
+  const templateId = (raw as Record<string, unknown>).templateId;
+  return typeof templateId === "string" && templateId.trim() ? templateId.trim() : null;
+}
+
+export function buildGroupProgressPayload(
+  progress: GroupProgressMap,
+  options?: { templateId?: string | null; existingRaw?: unknown }
+) {
+  const base: Record<string, unknown> =
+    options?.existingRaw && typeof options.existingRaw === "object" && !Array.isArray(options.existingRaw)
+      ? { ...(options.existingRaw as Record<string, unknown>) }
+      : {};
+
+  for (const [groupId, value] of Object.entries(progress)) {
+    base[groupId] = { startedAt: value.startedAt };
+  }
+
+  if (options?.templateId) {
+    base[TEMPLATE_LINK_KEY] = { templateId: options.templateId };
+  }
+
+  return base;
+}

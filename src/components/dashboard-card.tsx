@@ -2,7 +2,7 @@
 
 import { LucideIcon } from "lucide-react";
 
-type Accent = "amber" | "red" | "rose" | "blue";
+type Accent = "amber" | "red" | "rose" | "blue" | "black";
 
 type Props = {
   title: string;

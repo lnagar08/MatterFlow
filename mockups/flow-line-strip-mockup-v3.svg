@@ -1,0 +1,55 @@
+<svg width="1500" height="280" viewBox="0 0 1500 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="inSeg" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#20B16F"/>
+      <stop offset="1" stop-color="#2CC785"/>
+    </linearGradient>
+    <linearGradient id="riskSeg" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#E6A10C"/>
+      <stop offset="1" stop-color="#F4BC3E"/>
+    </linearGradient>
+    <linearGradient id="outSeg" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#E45555"/>
+      <stop offset="1" stop-color="#F07272"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1500" height="280" fill="#F8FBFF"/>
+
+  <text x="40" y="48" fill="#35507A" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="700">Flow line color key:</text>
+
+  <rect x="450" y="18" width="26" height="26" rx="8" fill="#22B573"/>
+  <text x="490" y="42" fill="#4A638A" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="700">In Flow</text>
+
+  <rect x="780" y="18" width="26" height="26" rx="8" fill="#F0AD1F"/>
+  <text x="820" y="42" fill="#4A638A" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="700">At Flow Risk</text>
+
+  <rect x="1130" y="18" width="26" height="26" rx="8" fill="#E85A5A"/>
+  <text x="1170" y="42" fill="#4A638A" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="700">Out of Flow</text>
+
+  <rect x="40" y="94" width="26" height="26" rx="8" fill="#AFC0DB"/>
+  <text x="80" y="118" fill="#4A638A" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="700">Not applicable yet</text>
+
+  <!-- base track -->
+  <line x1="96" y1="190" x2="1404" y2="190" stroke="#C7D4E8" stroke-width="16" stroke-linecap="round"/>
+
+  <!-- stage state segments (this is the main requested visual) -->
+  <!-- Intake complete => green -->
+  <line x1="96" y1="190" x2="520" y2="190" stroke="url(#inSeg)" stroke-width="16" stroke-linecap="round"/>
+  <!-- Drafting at risk => yellow -->
+  <line x1="520" y1="190" x2="900" y2="190" stroke="url(#riskSeg)" stroke-width="16" stroke-linecap="round"/>
+  <!-- SEC/BlueSky not entered yet => gray (leave base visible) -->
+  <line x1="900" y1="190" x2="1170" y2="190" stroke="#B7C6DD" stroke-width="16" stroke-linecap="round"/>
+  <!-- Closing not entered => gray -->
+  <line x1="1170" y1="190" x2="1404" y2="190" stroke="#B7C6DD" stroke-width="16" stroke-linecap="round"/>
+
+  <!-- nodes -->
+  <circle cx="96" cy="190" r="30" fill="#DFF7EB" stroke="#22B573" stroke-width="4"/>
+  <text x="84" y="202" fill="#138C57" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="900">✓</text>
+
+  <circle cx="520" cy="190" r="30" fill="#FFF4DF" stroke="#F0AD1F" stroke-width="4"/>
+  <text x="508" y="202" fill="#B16E00" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="900">⚠</text>
+
+  <circle cx="900" cy="190" r="30" fill="#EDF3FC" stroke="#94A9C8" stroke-width="4"/>
+  <circle cx="1170" cy="190" r="30" fill="#EDF3FC" stroke="#94A9C8" stroke-width="4"/>
+</svg>

@@ -1,0 +1,2 @@
+ALTER TABLE "FirmSettings"
+ADD COLUMN "atRiskStageWindowDays" INTEGER NOT NULL DEFAULT 2;

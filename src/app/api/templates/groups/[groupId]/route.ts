@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getCurrentUserContext } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
+import { getTemplateSnapshot, snapshotSignature, syncTemplateToMatters } from "@/lib/template-sync";
 
 type Params = { params: Promise<{ groupId: string }> };
 
@@ -35,6 +36,8 @@ export async function PATCH(request: Request, { params }: Params) {
   if (!group) {
     return NextResponse.json({ error: "Group not found." }, { status: 404 });
   }
+  const previousTemplate = await getTemplateSnapshot(group.templateId);
+  const previousSignature = previousTemplate ? snapshotSignature(previousTemplate) : null;
 
   const title = payload.title?.trim() || group.title;
   const indentLevel = Math.max(0, Math.min(5, Number(payload.indentLevel ?? group.indentLevel)));
@@ -53,6 +56,15 @@ export async function PATCH(request: Request, { params }: Params) {
       expectedDurationDays
     }
   });
+
+  if (previousSignature) {
+    await syncTemplateToMatters({
+      firmId: context.membership.firmId,
+      templateId: group.templateId,
+      previousSignature,
+      previousSnapshot: previousTemplate
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }
@@ -80,6 +92,8 @@ export async function DELETE(_request: Request, { params }: Params) {
   if (!group) {
     return NextResponse.json({ error: "Group not found." }, { status: 404 });
   }
+  const previousTemplate = await getTemplateSnapshot(group.templateId);
+  const previousSignature = previousTemplate ? snapshotSignature(previousTemplate) : null;
 
   await prisma.templateStep.updateMany({
     where: { groupId },
@@ -89,6 +103,15 @@ export async function DELETE(_request: Request, { params }: Params) {
   await prisma.templateGroup.delete({
     where: { id: groupId }
   });
+
+  if (previousSignature) {
+    await syncTemplateToMatters({
+      firmId: context.membership.firmId,
+      templateId: group.templateId,
+      previousSignature,
+      previousSnapshot: previousTemplate
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }

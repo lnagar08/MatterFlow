@@ -68,6 +68,7 @@ export async function GET() {
         groupTimingEnabled: settings.groupTimingEnabled,
         agingDays: settings.agingDays,
         dueSoonHours: settings.dueSoonHours,
+        atRiskStageWindowDays: settings.atRiskStageWindowDays,
         penaltyBoxOpenDays: settings.penaltyBoxOpenDays,
         penaltyIncludeOverdue: settings.penaltyIncludeOverdue,
         penaltyIncludeAging: settings.penaltyIncludeAging

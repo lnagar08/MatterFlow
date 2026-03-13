@@ -1,0 +1,64 @@
+<svg width="2048" height="470" viewBox="0 0 2048 470" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="panelBg" x1="0" y1="0" x2="0" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.93"/>
+      <stop offset="1" stop-color="#F7FAFF" stop-opacity="0.92"/>
+    </linearGradient>
+    <filter id="soft" x="30" y="18" width="1988" height="430" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#123059" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#soft)">
+    <rect x="60" y="28" width="1928" height="390" rx="24" fill="url(#panelBg)" stroke="#D4E0F0"/>
+  </g>
+
+  <text x="104" y="84" fill="#132445" font-family="Inter, Segoe UI, Arial" font-size="34" font-weight="700">Flow Timeline</text>
+  <text x="104" y="116" fill="#5C7396" font-family="Inter, Segoe UI, Arial" font-size="22" font-weight="600">Peter Parker · Test Matter 11 · Full PPM Services</text>
+
+  <!-- Status chips -->
+  <rect x="104" y="136" width="250" height="40" rx="12" fill="#EEF4FF" stroke="#D6E4FA"/>
+  <text x="126" y="162" fill="#2A4D7F" font-family="Inter, Segoe UI, Arial" font-size="20" font-weight="600">Engaged Feb 24, 2026</text>
+  <rect x="370" y="136" width="230" height="40" rx="12" fill="#EAF9F3" stroke="#BFE8D6"/>
+  <text x="392" y="162" fill="#1C6A48" font-family="Inter, Segoe UI, Arial" font-size="20" font-weight="700">In Flow</text>
+  <rect x="614" y="136" width="340" height="40" rx="12" fill="#F6FAFF" stroke="#D6E3F4"/>
+  <text x="636" y="162" fill="#4A6285" font-family="Inter, Segoe UI, Arial" font-size="20" font-weight="600">Current Stage: SEC/Blue Sky Filings</text>
+
+  <!-- Base track -->
+  <line x1="250" y1="235" x2="1790" y2="235" stroke="#D1DCEC" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Colored segments from actual state -->
+  <!-- Intake completed -->
+  <line x1="250" y1="235" x2="760" y2="235" stroke="#22A06B" stroke-width="12" stroke-linecap="round"/>
+  <!-- Drafting completed -->
+  <line x1="760" y1="235" x2="1280" y2="235" stroke="#22A06B" stroke-width="12" stroke-linecap="round"/>
+  <!-- SEC/Blue Sky current, started today -->
+  <line x1="1280" y1="235" x2="1790" y2="235" stroke="#22A06B" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Stage nodes -->
+  <circle cx="250" cy="235" r="19" fill="#22A06B"/>
+  <path d="M239 235L248 244L263 227" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <circle cx="760" cy="235" r="19" fill="#22A06B"/>
+  <path d="M749 235L758 244L773 227" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <circle cx="1280" cy="235" r="19" fill="#22A06B"/>
+  <circle cx="1280" cy="235" r="7" fill="white"/>
+
+  <circle cx="1790" cy="235" r="19" fill="#22A06B"/>
+
+  <!-- Stage labels -->
+  <text x="170" y="203" fill="#1D6849" font-family="Inter, Segoe UI, Arial" font-size="28" font-weight="700">Intake ✅</text>
+  <text x="660" y="203" fill="#1D6849" font-family="Inter, Segoe UI, Arial" font-size="28" font-weight="700">Drafting ✅</text>
+  <text x="1150" y="203" fill="#1D6849" font-family="Inter, Segoe UI, Arial" font-size="28" font-weight="700">SEC/Blue Sky</text>
+
+  <!-- Metrics under nodes -->
+  <text x="180" y="278" fill="#1D6849" font-family="Inter, Segoe UI, Arial" font-size="28" font-weight="700">5/5d</text>
+  <text x="678" y="278" fill="#1D6849" font-family="Inter, Segoe UI, Arial" font-size="28" font-weight="700">30/30d</text>
+  <text x="1185" y="278" fill="#1D6849" font-family="Inter, Segoe UI, Arial" font-size="28" font-weight="700">Started today (0/5d)</text>
+
+  <!-- Plain details (actual from DB snapshot) -->
+  <text x="120" y="332" fill="#40597D" font-family="Inter, Segoe UI, Arial" font-size="22" font-weight="600">Intake completed Mar 4, 2026 (Questionnaire → Strategy Session Completed)</text>
+  <text x="120" y="364" fill="#40597D" font-family="Inter, Segoe UI, Arial" font-size="22" font-weight="600">Drafting completed Mar 5, 2026 (Final Documents Sent completed)</text>
+  <text x="120" y="396" fill="#40597D" font-family="Inter, Segoe UI, Arial" font-size="22" font-weight="600">SEC/Blue Sky has 8 pending steps; no explicit due dates set yet.</text>
+</svg>

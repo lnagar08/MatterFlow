@@ -12,6 +12,7 @@ type Props = {
     groupTimingEnabled?: boolean;
     agingDays: number;
     dueSoonHours: number;
+    atRiskStageWindowDays?: number;
     penaltyBoxOpenDays: number;
     penaltyIncludeOverdue?: boolean;
     penaltyIncludeAging?: boolean;
@@ -26,6 +27,7 @@ export function RulesSettingsForm({ initial }: Props) {
     groupTimingEnabled: true,
     agingDays: "30",
     dueSoonHours: "48",
+    atRiskStageWindowDays: "2",
     penaltyBoxOpenDays: "40",
     penaltyIncludeOverdue: true,
     penaltyIncludeAging: true
@@ -37,6 +39,7 @@ export function RulesSettingsForm({ initial }: Props) {
     groupTimingEnabled: initial.groupTimingEnabled ?? true,
     agingDays: String(initial.agingDays),
     dueSoonHours: String(initial.dueSoonHours),
+    atRiskStageWindowDays: String(initial.atRiskStageWindowDays ?? 2),
     penaltyBoxOpenDays: String(initial.penaltyBoxOpenDays),
     penaltyIncludeOverdue: initial.penaltyIncludeOverdue ?? true,
     penaltyIncludeAging: initial.penaltyIncludeAging ?? true
@@ -64,6 +67,7 @@ export function RulesSettingsForm({ initial }: Props) {
           groupTimingEnabled: form.groupTimingEnabled,
           agingDays: Number(form.agingDays),
           dueSoonHours: Number(form.dueSoonHours),
+          atRiskStageWindowDays: Number(form.atRiskStageWindowDays),
           penaltyBoxOpenDays: Number(form.penaltyBoxOpenDays),
           penaltyIncludeOverdue: form.penaltyIncludeOverdue,
           penaltyIncludeAging: form.penaltyIncludeAging
@@ -146,6 +150,18 @@ export function RulesSettingsForm({ initial }: Props) {
             value={form.dueSoonHours}
             onChange={(event) => setForm((current) => ({ ...current, dueSoonHours: event.target.value }))}
           />
+        </label>
+        <label className="grid" style={{ gap: 6 }}>
+          <span className="meta">At Flow Risk if stage has this many days left</span>
+          <input
+            className="input"
+            type="number"
+            min={0}
+            max={30}
+            value={form.atRiskStageWindowDays}
+            onChange={(event) => setForm((current) => ({ ...current, atRiskStageWindowDays: event.target.value }))}
+          />
+          <span className="meta">Set to 0 to disable this rule and revert to due-soon only behavior.</span>
         </label>
       </div>
 

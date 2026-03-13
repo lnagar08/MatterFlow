@@ -1,0 +1,62 @@
+<svg width="2048" height="360" viewBox="0 0 2048 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="panelBg" x1="0" y1="0" x2="0" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#F7FAFF" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="track" x1="0" y1="0" x2="1440" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C7D5EA"/>
+      <stop offset="1" stop-color="#D3DEEF"/>
+    </linearGradient>
+    <filter id="soft" x="30" y="22" width="1988" height="316" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#123059" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#soft)">
+    <rect x="60" y="32" width="1928" height="296" rx="26" fill="url(#panelBg)" stroke="#D4E0F0"/>
+  </g>
+
+  <text x="104" y="88" fill="#132445" font-family="Inter, Segoe UI, Arial" font-size="34" font-weight="700">Flow Timeline</text>
+  <rect x="315" y="56" width="290" height="40" rx="12" fill="#EEF4FF" stroke="#D6E4FA"/>
+  <text x="336" y="83" fill="#2A4D7F" font-family="Inter, Segoe UI, Arial" font-size="22" font-weight="600">Current: Drafting</text>
+
+  <rect x="1646" y="56" width="158" height="40" rx="12" fill="#EAF9F3" stroke="#BFE8D6"/>
+  <text x="1670" y="83" fill="#1C6A48" font-family="Inter, Segoe UI, Arial" font-size="22" font-weight="700">29/30d</text>
+
+  <line x1="240" y1="184" x2="1808" y2="184" stroke="url(#track)" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Intake -->
+  <circle cx="300" cy="184" r="22" fill="#1EA76B"/>
+  <path d="M289 184L298 193L313 176" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="196" y="214" width="208" height="86" rx="16" fill="#EAF9F2" stroke="#A9E1C5"/>
+  <text x="220" y="247" fill="#0F4D35" font-family="Inter, Segoe UI, Arial" font-size="30" font-weight="700">Intake</text>
+  <text x="220" y="281" fill="#1D6D4A" font-family="Inter, Segoe UI, Arial" font-size="26" font-weight="700">10/12d</text>
+
+  <!-- Drafting -->
+  <circle cx="760" cy="184" r="22" fill="#E3A119"/>
+  <path d="M760 172V187" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="760" cy="194" r="3" fill="white"/>
+  <rect x="626" y="214" width="268" height="86" rx="16" fill="#FFF7E8" stroke="#F0CF8E"/>
+  <text x="650" y="247" fill="#7D4D02" font-family="Inter, Segoe UI, Arial" font-size="30" font-weight="700">Drafting</text>
+  <text x="650" y="281" fill="#9A6205" font-family="Inter, Segoe UI, Arial" font-size="26" font-weight="700">29/30d · At Flow Risk</text>
+
+  <!-- SEC/Blue Sky -->
+  <circle cx="1240" cy="184" r="22" fill="#C6D2E6"/>
+  <circle cx="1240" cy="184" r="7" fill="white"/>
+  <rect x="1092" y="214" width="296" height="86" rx="16" fill="#F7FAFF" stroke="#CBD9EC"/>
+  <text x="1116" y="247" fill="#2F486E" font-family="Inter, Segoe UI, Arial" font-size="30" font-weight="700">SEC/Blue Sky</text>
+  <text x="1116" y="281" fill="#5B7193" font-family="Inter, Segoe UI, Arial" font-size="26" font-weight="700">0/5d</text>
+
+  <!-- Closing -->
+  <circle cx="1710" cy="184" r="22" fill="#C6D2E6"/>
+  <circle cx="1710" cy="184" r="7" fill="white"/>
+  <rect x="1600" y="214" width="220" height="86" rx="16" fill="#F7FAFF" stroke="#CBD9EC"/>
+  <text x="1624" y="247" fill="#2F486E" font-family="Inter, Segoe UI, Arial" font-size="30" font-weight="700">Closing</text>
+  <text x="1624" y="281" fill="#5B7193" font-family="Inter, Segoe UI, Arial" font-size="26" font-weight="700">0/7d</text>
+
+  <!-- connectors accent -->
+  <circle cx="530" cy="184" r="8" fill="#C2D2E8"/>
+  <circle cx="1000" cy="184" r="8" fill="#C2D2E8"/>
+  <circle cx="1475" cy="184" r="8" fill="#C2D2E8"/>
+</svg>

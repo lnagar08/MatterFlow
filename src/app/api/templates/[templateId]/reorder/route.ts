@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 
 import { getCurrentUserContext } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
+import { getTemplateSnapshot, snapshotSignature, syncTemplateToMatters } from "@/lib/template-sync";
 
 type Params = { params: Promise<{ templateId: string }> };
 
 type ReorderPayload = {
   groups?: Array<{ id: string; sortOrder: number }>;
   steps?: Array<{ id: string; sortOrder: number }>;
+  groupOrder?: string[];
+  stepOrder?: string[];
 };
 
 export async function POST(request: Request, { params }: Params) {
@@ -20,6 +23,8 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   const { templateId } = await params;
+  const previousTemplate = await getTemplateSnapshot(templateId);
+  const previousSignature = previousTemplate ? snapshotSignature(previousTemplate) : null;
   const template = await prisma.matterTemplate.findFirst({
     where: {
       id: templateId,
@@ -32,34 +37,56 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   const payload = (await request.json()) as ReorderPayload;
-  const groups = payload.groups ?? [];
-  const steps = payload.steps ?? [];
+  const groups =
+    payload.groupOrder && payload.groupOrder.length > 0
+      ? payload.groupOrder.map((id, index) => ({ id, sortOrder: index + 1 }))
+      : payload.groups ?? [];
+  const steps =
+    payload.stepOrder && payload.stepOrder.length > 0
+      ? payload.stepOrder.map((id, index) => ({ id, sortOrder: index + 1 }))
+      : payload.steps ?? [];
 
   await prisma.$transaction(async (tx) => {
     for (const group of groups) {
-      await tx.templateGroup.updateMany({
-        where: {
-          id: group.id,
-          templateId
-        },
-        data: {
-          sortOrder: group.sortOrder
-        }
+      await tx.templateGroup.update({
+        where: { id: group.id },
+        data: { sortOrder: group.sortOrder }
       });
     }
 
     for (const step of steps) {
-      await tx.templateStep.updateMany({
-        where: {
-          id: step.id,
-          templateId
-        },
-        data: {
-          sortOrder: step.sortOrder
-        }
+      await tx.templateStep.update({
+        where: { id: step.id },
+        data: { sortOrder: step.sortOrder }
       });
     }
   });
 
-  return NextResponse.json({ ok: true });
+  const updatedTemplate = await prisma.matterTemplate.findFirst({
+    where: {
+      id: templateId,
+      firmId: context.membership.firmId
+    },
+    include: {
+      groups: { orderBy: { sortOrder: "asc" } },
+      steps: { orderBy: { sortOrder: "asc" } }
+    }
+  });
+
+  if (previousSignature) {
+    await syncTemplateToMatters({
+      firmId: context.membership.firmId,
+      templateId,
+      previousSignature,
+      previousSnapshot: previousTemplate
+    });
+  }
+
+  return NextResponse.json({
+    ok: true,
+    template: updatedTemplate,
+    debug: {
+      appliedStepOrder: steps
+    }
+  });
 }
