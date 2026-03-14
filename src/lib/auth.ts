@@ -2,7 +2,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
-
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 function hasEmailProviderConfig() {
@@ -39,28 +39,36 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Email Login",
       credentials: {
-        email: { label: "Email", type: "email" }
+        email: { label: "Email", type: "email" },
+		password: { label: "Password", type: "password" } 
       },
       async authorize(credentials) {
         const email = credentials?.email?.trim().toLowerCase();
+		if (!credentials?.email || !credentials?.password) return null;
         if (!email || !email.includes("@")) {
           return null;
         }
 
-        const existingUser = await prisma.user.findUnique({
+        const user = await prisma.user.findUnique({
           where: { email }
         });
+		
+		if (!user || !user.password) return null;
 
-        if (existingUser) {
-          return existingUser;
-        }
+		const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
 
-        return prisma.user.create({
+		if (!isPasswordValid) return null;
+	
+        //if (existingUser) {
+          return user;
+        //}
+
+        /*return prisma.user.create({
           data: {
             email,
             emailVerified: new Date()
           }
-        });
+        });*/
       }
     }),
     ...(hasEmailProviderConfig()
@@ -79,6 +87,22 @@ export const authOptions: NextAuthOptions = {
         ]
       : [])
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      
+      if (user) {
+        token.role = (user as any).role;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      
+      if (session.user) {
+        (session.user as any).role = token.role;
+      }
+      return session;
+    }
+  },
   pages: {
     signIn: "/"
   }

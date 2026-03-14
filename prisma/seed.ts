@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-
+import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
@@ -8,17 +8,22 @@ async function main() {
     update: {},
     create: { name: "PPM LAWYERS" }
   });
+  
+const hashedPassword = await bcrypt.hash("11111111", 10); //Store Default password by created or update user with seeding
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@ppmlawyers.com" },
     update: {
       name: "PPM Admin",
+	  password: hashedPassword,
       emailVerified: new Date()
     },
     create: {
       name: "PPM Admin",
       email: "admin@ppmlawyers.com",
-      emailVerified: new Date()
+	  password: hashedPassword,
+      emailVerified: new Date(),
+	  role: "ADMIN"
     }
   });
 
