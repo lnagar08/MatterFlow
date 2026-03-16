@@ -8,6 +8,7 @@ type iSession = {
     id:string;
   }
 }
+
 export async function getFirmTemplates(firmId: string) {
   const session = await getServerSession(authOptions) as iSession;
   if (!session || !session.user) {
