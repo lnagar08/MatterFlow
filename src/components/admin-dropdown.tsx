@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { signOut } from "next-auth/react"
+import { LogOut } from "lucide-react";
 
 type Props = {
   userName?: string | null;
@@ -106,11 +107,15 @@ export function AdminDropdown({ userName }: Props) {
           Archived
         </Link>
 		<button 
-  onClick={() => signOut({ callbackUrl: "/" })}
-  className="text-blue-500 hover:underline bg-transparent border-none p-0 cursor-pointer"
->
-  Logout
-</button>
+      onClick={() => signOut({ callbackUrl: window.location.origin })}
+      className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl shadow-sm hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all duration-200 active:scale-[0.97]"
+    >
+      {/* Logout Icon matching the Login/Register icons style */}
+      <LogOut className="h-4 w-4" />
+      
+      {/* Button Text */}
+      <span>Logout</span>
+    </button>
       </div>
     </details>
   );
