@@ -1,9 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { getMatterPenaltyInfo } from "@/lib/matter-health";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+
 
 export async function getFirmMatters(firmId: string) {
+
+  const session = await getServerSession(authOptions);
+  
   return prisma.matter.findMany({
     where: {
+	  userId: session.user.id,
       firmId,
       archivedAt: null,
       closedAt: null
@@ -38,9 +45,13 @@ export async function getFirmMatters(firmId: string) {
 }
 
 export async function getMatterById(id: string, firmId: string) {
+
+  const session = await getServerSession(authOptions);
+  
   return prisma.matter.findFirst({
     where: {
       id,
+	  userId: session.user.id,
       firmId,
       archivedAt: null,
       closedAt: null

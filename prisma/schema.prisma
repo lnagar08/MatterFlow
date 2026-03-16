@@ -29,7 +29,7 @@ model User {
   image         String?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-  role          String          @default("ADMIN")
+  role          FirmRole        
   password      String?
   accounts      Account[]
   membership    FirmMembership?
@@ -83,6 +83,7 @@ model Matter {
   dueDate         DateTime
   lastActivityAt  DateTime
   archivedAt      DateTime?
+  userId		  String?
   firmId          String
   clientId        String
   createdAt       DateTime         @default(now())
@@ -99,6 +100,7 @@ model MatterTemplate {
   id        String          @id @default(cuid())
   name      String
   sortOrder Int             @default(0)
+  userId    String?
   firmId    String
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt

@@ -2,6 +2,8 @@ import { getFirmSettings } from "@/lib/firm-settings";
 import { computeMatterFlags, diffInDays } from "@/lib/matter-flags";
 import { getGroupProgressStart, parseGroupProgress } from "@/lib/group-progress";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 const DAY_MS = 1000 * 60 * 60 * 24;
 
@@ -115,6 +117,8 @@ function completionBaseline(step: {
 }
 
 export async function getHomeData({ firmId, query = "" }: HomeDataInput) {
+  const session = await getServerSession(authOptions);
+  //console.log(session);
   const normalized = query.trim().toLowerCase();
   const settings = await getFirmSettings(firmId);
   const now = new Date();
@@ -131,6 +135,7 @@ export async function getHomeData({ firmId, query = "" }: HomeDataInput) {
 
   const matters = await prisma.matter.findMany({
     where: {
+	  userId: session.user.id,
       firmId,
       archivedAt: null,
       closedAt: null
@@ -260,6 +265,7 @@ export async function getHomeData({ firmId, query = "" }: HomeDataInput) {
     prisma.matter.count({
       where: {
         firmId,
+		userId: session.user.id,
         closedAt: {
           gte: startOfWeek,
           lt: startOfNextWeek
@@ -268,6 +274,7 @@ export async function getHomeData({ firmId, query = "" }: HomeDataInput) {
     }),
     prisma.matter.count({
       where: {
+	    userId: session.user.id,
         firmId,
         closedAt: {
           gte: startOfLastWeek,

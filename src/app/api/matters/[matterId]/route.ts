@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { getCurrentUserContext } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
 
@@ -13,6 +14,8 @@ type PatchPayload = {
 };
 
 export async function PATCH(request: Request, { params }: Params) {
+	const session = await getServerSession(authOptions);
+	
   const context = await getCurrentUserContext();
   if (!context?.membership) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
@@ -24,6 +27,7 @@ export async function PATCH(request: Request, { params }: Params) {
   const matter = await prisma.matter.findFirst({
     where: {
       id: matterId,
+	  userId: session.user.id,
       firmId: context.membership.firmId
     }
   });

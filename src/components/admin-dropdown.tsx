@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { signOut } from "next-auth/react"
 
 type Props = {
   userName?: string | null;
@@ -104,6 +105,12 @@ export function AdminDropdown({ userName }: Props) {
         <Link href="/matters/archived" className="admin-dropdown__item">
           Archived
         </Link>
+		<button 
+  onClick={() => signOut({ callbackUrl: "/" })}
+  className="text-blue-500 hover:underline bg-transparent border-none p-0 cursor-pointer"
+>
+  Logout
+</button>
       </div>
     </details>
   );

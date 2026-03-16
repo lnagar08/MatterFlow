@@ -12,18 +12,18 @@ async function main() {
 const hashedPassword = await bcrypt.hash("11111111", 10); //Store Default password by created or update user with seeding
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@ppmlawyers.com" },
+    where: { email: "attorny@ppmlawyers.com" },
     update: {
-      name: "PPM Admin",
+      name: "PPM Attroney",
 	  password: hashedPassword,
       emailVerified: new Date()
     },
     create: {
-      name: "PPM Admin",
-      email: "admin@ppmlawyers.com",
+      name: "PPM Attroney",
+      email: "attorny@ppmlawyers.com",
 	  password: hashedPassword,
       emailVerified: new Date(),
-	  role: "ADMIN"
+	  role: "ATTORNEY"
     }
   });
 

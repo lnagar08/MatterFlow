@@ -1,31 +1,49 @@
 import { NextResponse } from "next/server";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { getCurrentUserContext } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
 
 type CreateTemplatePayload = {
   name?: string;
 };
-
+type iSession = {
+  user: {
+    id:string;
+  }
+}
 export async function GET() {
+  const session = await getServerSession(authOptions) as iSession;
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+  }
+
   const context = await getCurrentUserContext();
   if (!context?.membership) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
 
   const templates = await prisma.matterTemplate.findMany({
-    where: { firmId: context.membership.firmId },
+    where: { 
+      userId: session.user.id, 
+      firmId: context.membership.firmId 
+    },
     include: {
       groups: { orderBy: { sortOrder: "asc" } },
       steps: { orderBy: { sortOrder: "asc" } }
     },
     orderBy: { sortOrder: "asc" }
   });
-
+  
   return NextResponse.json({ templates });
 }
 
 export async function POST(request: Request) {
+  const session = await getServerSession(authOptions) as iSession;
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+  }
+
   const context = await getCurrentUserContext();
   if (!context?.membership) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
@@ -49,6 +67,7 @@ export async function POST(request: Request) {
 
   const template = await prisma.matterTemplate.create({
     data: {
+      userId: session.user.id,
       firmId: context.membership.firmId,
       name,
       sortOrder: (last?.sortOrder ?? 0) + 1
