@@ -1,11 +1,23 @@
 import { NextResponse } from "next/server";
-
+import { getServerSession } from "next-auth"; 
+import { authOptions } from "@/lib/auth";
 import { getCurrentUserContext } from "@/lib/firm-access";
 import { getFirmSettings } from "@/lib/firm-settings";
 import { computeMatterFlags } from "@/lib/matter-flags";
 import { prisma } from "@/lib/prisma";
 
+type iSession = {
+  user: {
+    id:string;
+  }
+}
+
 export async function GET() {
+  const session = await getServerSession(authOptions) as iSession;
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+  }
+
   const context = await getCurrentUserContext();
   const membership = context?.membership;
   if (!membership) {
@@ -16,11 +28,11 @@ export async function GET() {
     getFirmSettings(membership.firmId),
     prisma.matter.findMany({
       where: {
-        firmId: membership.firmId,
+        userId: session.user.id,
         archivedAt: null,
         closedAt: null
       },
-      include: {
+      include: { 
         checklistGroups: {
           include: {
             steps: true

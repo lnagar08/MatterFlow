@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth"; 
 import { authOptions } from "@/lib/auth";
 import { requireFirmMembership } from "@/lib/firm-access";
 import { buildGroupProgressPayload, parseGroupProgress } from "@/lib/group-progress";
@@ -28,7 +28,7 @@ type iSession = {
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions) as iSession;
   if (!session || !session.user) {
-	return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+	  return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
   }
   
   const { membership } = await requireFirmMembership();
@@ -63,6 +63,7 @@ export async function POST(request: Request) {
     const createdClient = await prisma.client.create({
       data: {
         firmId: membership.firmId,
+        userId: session.user.id,
         name: newName,
         companyName: newCompanyName,
         logoUrl:

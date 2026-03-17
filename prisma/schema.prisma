@@ -67,6 +67,7 @@ model Client {
   name        String
   companyName String
   logoUrl     String
+  userId      String?
   firmId      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
