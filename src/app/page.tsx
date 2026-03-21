@@ -17,7 +17,7 @@ export default async function RootPage() {
 	if (!session) {
 		redirect("/login");
 	}else if(session.user.role === 'ADMIN'){
-		redirect("/admin");
+		redirect("/admin/usermanagement");
 	}else if(session.user.role === 'ATTORNEY'){
 		redirect("/home");
 	}

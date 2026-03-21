@@ -34,6 +34,12 @@ model User {
   accounts      Account[]
   membership    FirmMembership?
   sessions      Session[]
+  permissions   Json?           @default("{}")
+  parentId      String?
+  parent        User?           @relation("FirmHierarchy", fields: [parentId], references: [id])
+  teamMembers   User[]          @relation("FirmHierarchy")
+  activityLogs ActivityLog[]
+  deletedAt DateTime?  
 }
 
 model FirmMembership {
@@ -240,4 +246,15 @@ enum FirmRole {
   ATTORNEY
   STAFF
   READ_ONLY
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  action      String
+  entityType  String
+  entityId    String
+  description String?
 }

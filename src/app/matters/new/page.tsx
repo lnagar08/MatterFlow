@@ -7,11 +7,17 @@ import { requireFirmMembership } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
 import { getFirmTemplates } from "@/lib/templates";
 import { NextResponse } from "next/server";
-
+import { redirect } from 'next/navigation';
 export const dynamic = "force-dynamic";
 type iSession = {
   user: {
     id:string;
+    role: string;
+    parentId: string;
+    permissions: {
+      addMatter: boolean;
+      addClient: boolean;
+    }
   }
 }
 export default async function NewMatterPage() {
@@ -19,12 +25,17 @@ export default async function NewMatterPage() {
   if (!session || !session.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
   }
-
+  const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
+  if(session.user.role === 'STAFF' && !session.user.permissions.addMatter){
+    redirect('/access-denied');
+  }
+  const isClientPermission = (session.user.role === 'STAFF' && !session.user.permissions.addClient? true: false);
+  
   const { membership } = await requireFirmMembership();
 
   const [clients, templates] = await Promise.all([
     prisma.client.findMany({
-      where: { userId: session.user.id },
+      where: { userId: userid },
       orderBy: { createdAt: "asc" },
       select: {
         id: true,
@@ -50,6 +61,7 @@ export default async function NewMatterPage() {
       <MatterCreateForm
         clients={clients}
         templates={templatesList}
+        isClientPermission={isClientPermission}
       />
     </main>
   );

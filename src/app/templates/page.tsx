@@ -4,13 +4,23 @@ import { AppNav } from "@/components/app-nav";
 import { TemplatesManager } from "@/components/templates-manager";
 import { requireAdminMembership } from "@/lib/firm-access";
 import { getFirmTemplates } from "@/lib/templates";
-
+import { getServerSession } from "next-auth"; 
+import { authOptions } from "@/lib/auth";
 export const dynamic = "force-dynamic";
-
+type iSession = {
+  user: {
+    id:string;
+    role: string;
+    permissions: {
+      addTemplates: boolean;
+    }
+  }
+}
 export default async function TemplatesPage() {
+  const session = await getServerSession(authOptions) as iSession;
   const { membership } = await requireAdminMembership();
   const templates = await getFirmTemplates(membership.firmId);
-
+  const isTemplatePermission = (session.user.role === 'STAFF' && !session.user.permissions.addTemplates? true: false);
   return (
     <main>
       <AppNav active="templates" />
@@ -26,7 +36,7 @@ export default async function TemplatesPage() {
         </Link>
       </div>
 
-      <TemplatesManager initialTemplates={templates} />
+      <TemplatesManager initialTemplates={templates} isTemplatePermission={isTemplatePermission} />
     </main>
   );
 }

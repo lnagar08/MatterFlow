@@ -1,7 +1,16 @@
 import { Prisma } from "@prisma/client";
 import { buildGroupProgressPayload, getTemplateLink, parseGroupProgress } from "@/lib/group-progress";
 import { prisma } from "@/lib/prisma";
-
+import { authOptions } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+type iSession = {
+  user: {
+    id:string;
+    role: string;
+    parentId: string;
+  }
+}
 type SnapshotGroup = {
   id: string;
   title: string;
@@ -66,6 +75,8 @@ export function snapshotSignature(snapshot: { groups: SnapshotGroup[]; steps: Sn
 }
 
 export async function getTemplateSnapshot(templateId: string) {
+  const session = await getServerSession(authOptions) as iSession;
+  const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   const template = await prisma.matterTemplate.findUnique({
     where: { id: templateId },
     include: {
@@ -108,9 +119,12 @@ export async function syncTemplateToMatters(args: {
 }) {
   const template = await getTemplateSnapshot(args.templateId);
   if (!template) return { synced: 0 };
-
+const session = await getServerSession(authOptions) as iSession;
+  const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   const matters = await prisma.matter.findMany({
+    
     where: {
+      userId: userid,
       firmId: args.firmId,
       archivedAt: null,
       closedAt: null

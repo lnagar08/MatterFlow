@@ -115,10 +115,18 @@ function completionBaseline(step: {
     null
   );
 }
-
+type iSession = {
+  user: {
+    id:string;
+    role: string;
+    parentId: string;
+  }
+}
 export async function getHomeData({ firmId, query = "" }: HomeDataInput) {
-  const session = await getServerSession(authOptions);
-  //console.log(session);
+  const session = await getServerSession(authOptions) as iSession;
+
+  const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
+  
   const normalized = query.trim().toLowerCase();
   const settings = await getFirmSettings(firmId);
   const now = new Date();
@@ -135,7 +143,7 @@ export async function getHomeData({ firmId, query = "" }: HomeDataInput) {
 
   const matters = await prisma.matter.findMany({
     where: {
-	  userId: session.user.id,
+	  userId: userid,
       firmId,
       archivedAt: null,
       closedAt: null
@@ -199,7 +207,7 @@ export async function getHomeData({ firmId, query = "" }: HomeDataInput) {
   });
 
   const templates = await prisma.matterTemplate.findMany({
-    where: { firmId },
+    where: { userId: userid, firmId },
     select: {
       name: true,
       groups: {
@@ -265,7 +273,7 @@ export async function getHomeData({ firmId, query = "" }: HomeDataInput) {
     prisma.matter.count({
       where: {
         firmId,
-		userId: session.user.id,
+		    userId: userid,
         closedAt: {
           gte: startOfWeek,
           lt: startOfNextWeek
@@ -274,7 +282,7 @@ export async function getHomeData({ firmId, query = "" }: HomeDataInput) {
     }),
     prisma.matter.count({
       where: {
-	    userId: session.user.id,
+	    userId: userid,
         firmId,
         closedAt: {
           gte: startOfLastWeek,

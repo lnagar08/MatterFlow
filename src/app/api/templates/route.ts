@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getCurrentUserContext } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/log";
 
 type CreateTemplatePayload = {
   name?: string;
@@ -10,6 +11,8 @@ type CreateTemplatePayload = {
 type iSession = {
   user: {
     id:string;
+    role: string;
+    parentId: string;
   }
 }
 export async function GET() {
@@ -17,7 +20,7 @@ export async function GET() {
   if (!session || !session.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
   }
-
+  const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   const context = await getCurrentUserContext();
   if (!context?.membership) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
@@ -25,7 +28,7 @@ export async function GET() {
 
   const templates = await prisma.matterTemplate.findMany({
     where: { 
-      userId: session.user.id, 
+      userId: userid, 
       firmId: context.membership.firmId 
     },
     include: {
@@ -43,7 +46,7 @@ export async function POST(request: Request) {
   if (!session || !session.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
   }
-
+  const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   const context = await getCurrentUserContext();
   if (!context?.membership) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
@@ -60,14 +63,14 @@ export async function POST(request: Request) {
   }
 
   const last = await prisma.matterTemplate.findFirst({
-    where: { firmId: context.membership.firmId },
+    where: { userId: userid, firmId: context.membership.firmId },
     orderBy: { sortOrder: "desc" },
     select: { sortOrder: true }
   });
 
   const template = await prisma.matterTemplate.create({
     data: {
-      userId: session.user.id,
+      userId: userid,
       firmId: context.membership.firmId,
       name,
       sortOrder: (last?.sortOrder ?? 0) + 1
@@ -77,6 +80,13 @@ export async function POST(request: Request) {
       steps: true
     }
   });
-
+  
+  await logActivity(
+    session.user.id,
+    "CREATE",
+    "Template",
+    template.id,
+    `new template: ${name}`
+  );
   return NextResponse.json({ template });
 }

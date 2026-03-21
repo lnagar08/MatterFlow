@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { getCurrentUserContext } from "@/lib/firm-access";
 import { buildGroupProgressPayload, parseGroupProgress } from "@/lib/group-progress";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/log";
 
 type Params = {
   params: Promise<{
@@ -18,6 +20,14 @@ type Payload = {
   dueAt?: string | null;
   completedAt?: string | null;
 };
+
+type iSession = {
+  user: {
+    id:string;
+    role: string;
+    parentId: string;
+  }
+}
 
 function completionBaseline(step: {
   completedAt: Date | null;
@@ -33,6 +43,11 @@ function completionBaseline(step: {
 }
 
 export async function PATCH(request: Request, { params }: Params) {
+  const session = await getServerSession(authOptions) as iSession;
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+  }
+  const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   const context = await getCurrentUserContext();
   if (!context?.membership) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
@@ -115,6 +130,14 @@ export async function PATCH(request: Request, { params }: Params) {
       data: stepUpdateData
     });
 
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "checklistStep",
+      stepId,
+      'completed'
+    );
+
     const [matterWithProgress, groups] = await Promise.all([
       tx.matter.findUnique({
         where: { id: matterId },
@@ -133,10 +156,26 @@ export async function PATCH(request: Request, { params }: Params) {
         }
       })
     ]);
-
+    
     const groupProgress = parseGroupProgress(matterWithProgress?.groupProgress);
     const currentGroup = groups.find((group) => group.steps.some((groupStep) => !groupStep.completed));
+
     if (currentGroup) {
+      /*let statusText;
+      const currentSortOrder = currentGroup?.sortOrder ?? Number.MAX_SAFE_INTEGER;
+      const totalSteps = groups[0].steps.length;
+      const completedSteps = groups[0].steps.filter((step) => step.completed).length;
+      const allCompleted = totalSteps > 0 && completedSteps === totalSteps;
+      const isCurrent = currentGroup.id === groups[0].id;
+      const isUpcoming = !allCompleted && !isCurrent && groups[0].sortOrder > currentSortOrder;
+      if (allCompleted) {
+        statusText = "Completed";
+      }else if (isUpcoming) {
+        statusText = "Not entered yet";
+      }else if (isCurrent && flowState.statusLabel === "Out of Flow") {
+        statusText = overdueCount > 0 ? `${overdueCount} overdue` : "Out of Flow";
+      }*/
+
       const currentGroupOrder = currentGroup.sortOrder;
       const currentGroupFirstStep = [...currentGroup.steps].sort((a, b) => a.sortOrder - b.sortOrder)[0];
       const firstStepCompletedAt = currentGroupFirstStep ? completionBaseline(currentGroupFirstStep) : null;
@@ -202,6 +241,14 @@ export async function PATCH(request: Request, { params }: Params) {
         }) as Prisma.InputJsonValue
       }
     });
+
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "matter",
+      matterId,
+      'updated'
+    );
   });
 
   revalidatePath(`/matters/${matterId}`);

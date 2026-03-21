@@ -1,20 +1,35 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { getCurrentUserContext } from "@/lib/firm-access";
 import { buildGroupProgressPayload, parseGroupProgress } from "@/lib/group-progress";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/log";
 
 type Params = {
   params: Promise<{ matterId: string }>;
 };
-
+ 
 type Payload = {
   templateId?: string;
 };
 
+type iSession = {
+  user: {
+    id:string;
+    role: string;
+    parentId: string;
+  }
+}
+
 export async function POST(request: Request, { params }: Params) {
+  const session = await getServerSession(authOptions) as iSession;
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+  }
+  const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   const context = await getCurrentUserContext();
   if (!context?.membership) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
@@ -32,6 +47,7 @@ export async function POST(request: Request, { params }: Params) {
     prisma.matter.findFirst({
       where: {
         id: matterId,
+        userId: userid,
         firmId: context.membership.firmId,
         archivedAt: null
       }
@@ -39,6 +55,7 @@ export async function POST(request: Request, { params }: Params) {
     prisma.matterTemplate.findFirst({
       where: {
         id: templateId,
+        userId: userid,
         firmId: context.membership.firmId
       },
       include: {
@@ -71,11 +88,27 @@ export async function POST(request: Request, { params }: Params) {
       }
     });
 
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "checklistStep",
+      matter.id,
+      `Deleted checklist by metter id: ${matter.id}`
+    );
+
     await tx.checklistGroup.deleteMany({
       where: {
         matterId: matter.id
       }
     });
+
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "checklistGroup",
+      matter.id,
+      `Deleted checklist by metter id: ${matter.id}`
+    );
 
     const groupMap = new Map<string, string>();
     const orderedCreatedGroups: Array<{ id: string; sortOrder: number }> = [];
@@ -91,6 +124,14 @@ export async function POST(request: Request, { params }: Params) {
         }
       });
 
+      await logActivity(
+        session.user.id,
+        "CREATE",
+        "checklistGroup",
+        matter.id,
+        `Created checklistGroup name: ${group.title}`
+      );
+ 
       groupMap.set(group.id, created.id);
       orderedCreatedGroups.push({ id: created.id, sortOrder: created.sortOrder });
     }
@@ -107,6 +148,14 @@ export async function POST(request: Request, { params }: Params) {
           completed: false
         }
       });
+
+      await logActivity(
+        session.user.id,
+        "CREATE",
+        "checklistStep",
+        matter.id,
+        `Created checklistStep name: ${step.label}`
+      );
     }
 
     const firstGroup = orderedCreatedGroups.sort((a, b) => a.sortOrder - b.sortOrder)[0];
@@ -116,7 +165,10 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     await tx.matter.update({
-      where: { id: matter.id },
+      where: { 
+        id: matter.id, 
+        userId: userid,
+       },
       data: {
         lastActivityAt: new Date(),
         groupProgress: buildGroupProgressPayload(groupProgress, {
@@ -125,6 +177,14 @@ export async function POST(request: Request, { params }: Params) {
         }) as Prisma.InputJsonValue
       }
     });
+
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "matter",
+      matter.id,
+      `Created matter name`
+    );
   });
 
   revalidatePath(`/matters/${matter.id}`);

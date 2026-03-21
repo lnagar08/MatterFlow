@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-
+ 
 import { ApplyTemplateControl } from "@/components/apply-template-control";
 import { AppNav } from "@/components/app-nav";
 import { MatterActions } from "@/components/matter-actions";
@@ -10,7 +10,9 @@ import { computeMatterFlags } from "@/lib/matter-flags";
 import { getFirmMatters, getMatterById } from "@/lib/matters";
 import { isOverdue } from "@/lib/step-overdue";
 import { getFirmTemplates } from "@/lib/templates";
-
+import { getServerSession } from "next-auth"; 
+import { authOptions } from "@/lib/auth";
+import { redirect } from 'next/navigation';
 export const dynamic = "force-dynamic";
 
 type MatterDetailPageProps = {
@@ -34,12 +36,31 @@ function asDate(input: Date) {
   }).format(new Date(input));
 }
 
+type iSession = {
+  user: {
+    id:string;
+    role: string;
+    permissions: {
+      viewMatter: boolean;
+      editMatter: boolean;
+    }
+  }
+}
+
 export default async function MatterDetailPage({ params, searchParams }: MatterDetailPageProps) {
+  const session = await getServerSession(authOptions) as iSession;
+  //
+  if(session.user.role === 'STAFF' && session.user.permissions.viewMatter == false){
+    redirect('/access-denied');
+  }
+
+  const isEditMetterPermission = (session.user.role === 'STAFF' && !session.user.permissions.editMatter? true: false);
+  
   const { id } = await params;
   const query = await searchParams;
   const { membership } = await requireFirmMembership();
   const matter = await getMatterById(id, membership.firmId);
-
+ 
   if (!matter) {
     notFound();
   }
@@ -192,11 +213,22 @@ export default async function MatterDetailPage({ params, searchParams }: MatterD
           <ApplyTemplateControl
             matterId={matter.id}
             templates={templates.map((template) => ({ id: template.id, name: template.name }))}
+            isEditMetterPermission={isEditMetterPermission}
           />
           <MatterActions matterId={matter.id} />
         </div>
       </section>
-
+       {isEditMetterPermission ? (
+  
+  <>
+  <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'sans-serif' }}>
+        <h1 style={{ fontSize: '3rem', color: '#ff4d4f' }}>403</h1>
+        <h2>Access Denied</h2>
+        <p>You do not have permission to view this page.</p>
+       
+      </div>
+  </>
+) : (
       <MatterCard
         matterId={matter.id}
         clientName={matter.client.name}
@@ -227,6 +259,7 @@ export default async function MatterDetailPage({ params, searchParams }: MatterD
         previousHref={previousHref}
         nextHref={nextHref}
       />
+       )}
     </main>
   );
 }

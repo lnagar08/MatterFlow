@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+import { AuthProvider } from "@/components/providers/session-provider";
+
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
@@ -28,7 +30,9 @@ export default function RootLayout({
             },
           }}
         />
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ImportMattersModal } from "@/components/import-matters-modal";
+import { redirect } from 'next/navigation';
 
 type TemplateGroup = {
   id: string;
@@ -30,6 +31,7 @@ type Template = {
 
 type Props = {
   initialTemplates: Template[];
+  isTemplatePermission: boolean;
 };
 
 type TemplateTab = "workflow" | "status-rules" | "billing-default";
@@ -45,7 +47,7 @@ function storageKey(templateId: string, key: "status-rules" | "billing-default")
   return `matterflow.templates.${key}.${templateId}`;
 }
 
-export function TemplatesManager({ initialTemplates }: Props) {
+export function TemplatesManager({ initialTemplates, isTemplatePermission }: Props) {
   const [templates, setTemplates] = useState<Template[]>(initialTemplates);
   const [busy, setBusy] = useState<string | null>(null);
   const [isSavingAll, setIsSavingAll] = useState(false);
@@ -265,6 +267,9 @@ export function TemplatesManager({ initialTemplates }: Props) {
   }
 
   async function createTemplate(name = "New MatterFlow") {
+    if(isTemplatePermission){
+        redirect('/access-denied');
+    }
     setBusy("create-template");
     const response = await fetch("/api/templates", {
       method: "POST",

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getCurrentUserContext } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/log";
 
 type Params = { params: Promise<{ templateId: string }> };
 
@@ -12,6 +13,8 @@ type UpdateTemplatePayload = {
 type iSession = {
   user: {
     id:string;
+    role: string;
+    parentId: string;
   }
 }
 export async function PATCH(request: Request, { params }: Params) {
@@ -19,7 +22,7 @@ export async function PATCH(request: Request, { params }: Params) {
   if (!session || !session.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
   }
-
+  const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   const context = await getCurrentUserContext();
   if (!context?.membership) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
@@ -39,13 +42,21 @@ export async function PATCH(request: Request, { params }: Params) {
   const template = await prisma.matterTemplate.updateMany({
     where: {
       id: templateId,
-      userId: session.user.id,
+      userId: userid,
       firmId: context.membership.firmId
     },
     data: {
       name
     }
   });
+
+  await logActivity(
+    session.user.id,
+    "UPDATE",
+    "Template",
+    templateId,
+    `update template}`
+  );
 
   if (template.count === 0) {
     return NextResponse.json({ error: "Template not found." }, { status: 404 });
@@ -59,7 +70,7 @@ export async function DELETE(_request: Request, { params }: Params) {
   if (!session || !session.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
   }
-  
+  const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   const context = await getCurrentUserContext();
   if (!context?.membership) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
@@ -73,10 +84,18 @@ export async function DELETE(_request: Request, { params }: Params) {
   const result = await prisma.matterTemplate.deleteMany({
     where: {
       id: templateId,
-      userId: session.user.id,
+      userId: userid,
       firmId: context.membership.firmId
     }
   });
+
+  await logActivity(
+    session.user.id,
+    "DELETE",
+    "Template",
+    templateId,
+    `Delete template}`
+  );
 
   if (result.count === 0) {
     return NextResponse.json({ error: "Template not found." }, { status: 404 });

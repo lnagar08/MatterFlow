@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { requireFirmMembership } from "@/lib/firm-access";
 import { buildGroupProgressPayload, parseGroupProgress } from "@/lib/group-progress";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/log"; 
 
 type CreateMatterPayload = {
   title?: string;
@@ -23,6 +24,8 @@ type CreateMatterPayload = {
 type iSession = {
   user: {
     id:string;
+    role: string;
+    parentId: string;
   }
 }
 export async function POST(request: Request) {
@@ -30,7 +33,7 @@ export async function POST(request: Request) {
   if (!session || !session.user) {
 	  return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
   }
-  
+  const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   const { membership } = await requireFirmMembership();
   const payload = (await request.json()) as CreateMatterPayload;
 
@@ -63,7 +66,7 @@ export async function POST(request: Request) {
     const createdClient = await prisma.client.create({
       data: {
         firmId: membership.firmId,
-        userId: session.user.id,
+        userId: userid,
         name: newName,
         companyName: newCompanyName,
         logoUrl:
@@ -72,11 +75,22 @@ export async function POST(request: Request) {
       }
     });
     resolvedClientId = createdClient.id;
+
+    await logActivity(
+      userid,
+      "CREATE",
+      "Client",
+      resolvedClientId,
+      `Created a new Client named: ${createdClient.name}`
+    );
+
   }
 
   if (!resolvedClientId) {
     return NextResponse.json({ error: "Select an existing client or create a new one." }, { status: 400 });
   }
+
+  
 
   const client = await prisma.client.findFirst({
     where: {
@@ -93,7 +107,7 @@ export async function POST(request: Request) {
     data: {
       title,
       blurb,
-	    userId: session.user.id,
+	    userId: userid,
       clientId: resolvedClientId,
       firmId: membership.firmId,
       engagementDate,
@@ -103,6 +117,14 @@ export async function POST(request: Request) {
       groupProgress: {}
     }
   });
+
+    await logActivity(
+      userid,
+      "CREATE",
+      "Matter",
+      matter.id,
+      `Created a new Metter named: ${matter.title}`
+    );
 
   if (templateId) {
     const template = await prisma.matterTemplate.findFirst({
@@ -138,12 +160,21 @@ export async function POST(request: Request) {
             expectedDurationDays: group.expectedDurationDays
           }
         });
+
+        await logActivity(
+          userid,
+          "CREATE",
+          "checklistGroup",
+          createdGroup.id,
+          `Created a new createdGroup named: ${createdGroup.title}`
+        );
+
         groupMap.set(group.id, createdGroup.id);
         orderedCreatedGroups.push({ id: createdGroup.id, sortOrder: createdGroup.sortOrder });
       }
 
       for (const step of template.steps) {
-        await prisma.checklistStep.create({
+       const checklistStepRes =  await prisma.checklistStep.create({
           data: {
             matterId: matter.id,
             groupId: step.groupId ? (groupMap.get(step.groupId) ?? null) : null,
@@ -154,6 +185,14 @@ export async function POST(request: Request) {
             completed: false
           }
         });
+
+        await logActivity(
+          userid,
+          "CREATE",
+          "checklistStep",
+          checklistStepRes.id,
+          `Created a new createdGroup named: ${checklistStepRes.label}`
+        );
       }
       const firstGroup = orderedCreatedGroups.sort((a, b) => a.sortOrder - b.sortOrder)[0];
       if (firstGroup) {

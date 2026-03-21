@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-
+import { redirect } from 'next/navigation';
 type TemplateOption = {
   id: string;
   name: string;
@@ -11,20 +11,24 @@ type TemplateOption = {
 type Props = {
   matterId: string;
   templates: TemplateOption[];
+  isEditMetterPermission: boolean;
 };
 
-export function ApplyTemplateControl({ matterId, templates }: Props) {
+export function ApplyTemplateControl({ matterId, templates, isEditMetterPermission }: Props) {
   const router = useRouter();
   const [templateId, setTemplateId] = useState(templates[0]?.id ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  
   async function onApply() {
     if (!templateId || busy) {
       return;
     }
-
+    if(isEditMetterPermission){
+      redirect('/access-denied');
+    }
     const confirmed = window.confirm(
       "Apply this MatterFlow and replace the current checklist for this matter?"
     );

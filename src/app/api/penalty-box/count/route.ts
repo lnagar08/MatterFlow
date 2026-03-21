@@ -9,6 +9,8 @@ import { prisma } from "@/lib/prisma";
 type iSession = {
   user: {
     id:string;
+    role: string;
+    parentId: string;
   }
 }
 
@@ -17,7 +19,7 @@ export async function GET() {
   if (!session || !session.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
   }
-
+  const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   const context = await getCurrentUserContext();
   const membership = context?.membership;
   if (!membership) {
@@ -28,7 +30,7 @@ export async function GET() {
     getFirmSettings(membership.firmId),
     prisma.matter.findMany({
       where: {
-        userId: session.user.id,
+        userId: userid,
         archivedAt: null,
         closedAt: null
       },

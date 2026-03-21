@@ -30,6 +30,7 @@ function hasEmailProviderConfig() {
   );
 }
 
+// auth.ts
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
@@ -40,72 +41,59 @@ export const authOptions: NextAuthOptions = {
       name: "Email Login",
       credentials: {
         email: { label: "Email", type: "email" },
-		password: { label: "Password", type: "password" } 
+        password: { label: "Password", type: "password" } 
       },
       async authorize(credentials) {
         const email = credentials?.email?.trim().toLowerCase();
-		if (!credentials?.email || !credentials?.password) return null;
-        if (!email || !email.includes("@")) {
-          return null;
-        }
+        if (!email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
           where: { email }
         });
 		
-		if (!user || !user.password) return null;
+        // Check 1: Ensure user exists, has a password, AND is not soft-deleted
+        if (!user || !user.password || user.deletedAt) {
+          // Returning null triggers the "CredentialsSignin" error on the client
+          return null; 
+        }
 
-		const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
 
-		if (!isPasswordValid) return null;
+        if (!isPasswordValid) return null;
 	
-        //if (existingUser) {
-          return user;
-        //}
-
-        /*return prisma.user.create({
-          data: {
-            email,
-            emailVerified: new Date()
-          }
-        });*/
+        return user;
       }
     }),
-    ...(hasEmailProviderConfig()
-      ? [
-          EmailProvider({
-            server: {
-              host: process.env.EMAIL_SERVER_HOST,
-              port: Number(process.env.EMAIL_SERVER_PORT ?? 587),
-              auth: {
-                user: process.env.EMAIL_SERVER_USER,
-                pass: process.env.EMAIL_SERVER_PASSWORD
-              }
-            },
-            from: process.env.EMAIL_FROM
-          })
-        ]
-      : [])
+    // ... rest of your EmailProvider logic
   ],
   callbacks: {
+    async signIn({ user }) {
+      if ((user as any)?.deletedAt) {
+        return false; 
+      }
+      return true;
+    },
     async jwt({ token, user }) {
-      
+      // The 'user' object here comes from the 'authorize' function return
       if (user) {
-	    token.id = user.id;
+        token.id = user.id;
         token.role = (user as any).role;
+        token.parentId = (user as any).parentId;
+        token.permissions = (user as any).permissions; 
       }
       return token;
     },
     async session({ session, token }) {
-      
       if (session.user) {
-	      (session.user as any).id = token.id; 
+        (session.user as any).id = token.id; 
         (session.user as any).role = token.role;
+        (session.user as any).parentId = token.parentId;
+        (session.user as any).permissions = token.permissions;
       }
       return session;
     }
   },
   pages: {
-    signIn: "/"
+    signIn: "/" // Your root page serves as the login
   }
 };

@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { ImportMattersModal } from "@/components/import-matters-modal";
-
+import { redirect } from 'next/navigation';
 type ClientOption = {
   id: string;
   name: string;
@@ -17,16 +17,19 @@ type TemplateOption = {
 type Props = {
   clients: ClientOption[];
   templates: TemplateOption[];
+  isClientPermission: boolean;
 };
 
-export function MatterCreateForm({ clients, templates }: Props) {
+export function MatterCreateForm({ clients, templates, isClientPermission }: Props) {
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [importOpen, setImportOpen] = useState(false);
 
   const creatingNewClient = selectedClientId === "__new__";
-
+  if(isClientPermission && creatingNewClient){
+    redirect('/access-denied');
+  }
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("saving");

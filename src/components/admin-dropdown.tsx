@@ -94,9 +94,12 @@ export function AdminDropdown({ userName }: Props) {
         <span aria-hidden="true">▾</span>
       </summary>
       <div className="admin-dropdown__panel avatar-panel absolute right-0 mt-2 w-48 rounded-xl bg-white p-2 z-50">
+        {/*<Link href="/users" className="admin-dropdown__item">
+          User Management
+        </Link>
         <Link href="/settings/users" className="admin-dropdown__item">
           Users
-        </Link>
+        </Link>*/}
         <Link href="/rules" className="admin-dropdown__item">
           Flow Controls
         </Link>
@@ -107,7 +110,9 @@ export function AdminDropdown({ userName }: Props) {
           Archived
         </Link>
 		<button 
-      onClick={() => signOut({ callbackUrl: window.location.origin })}
+      onClick={async () => {
+        await signOut({ redirect: true, callbackUrl: "/" });
+      }}
       className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl shadow-sm hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all duration-200 active:scale-[0.97]"
     >
       {/* Logout Icon matching the Login/Register icons style */}

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { requireFirmMembership } from "@/lib/firm-access";
 import { parseGroupProgress } from "@/lib/group-progress";
 import { prisma } from "@/lib/prisma";
-
+import { logActivity } from "@/lib/log";
+ 
 type ImportRowPayload = {
   matterTitle?: string;
   matterSummary?: string;
@@ -31,6 +33,12 @@ type NormalizedRow = {
 };
 type InvalidRow = { rowNumber: number; message: string; normalizedRow: NormalizedRow };
 type DuplicateRow = { rowNumber: number; message: string; normalizedRow: NormalizedRow };
+
+type iSession = {
+  user: {
+    id:string;
+  }
+}
 
 function normalizeName(value: string) {
   return value
@@ -82,9 +90,15 @@ function normalizeMoney(value: number | null | undefined) {
   return Math.max(0, Math.round(value));
 }
 
-async function applyTemplateToMatter(args: { matterId: string; firmId: string; templateName: string }) {
+async function applyTemplateToMatter(args: { userId: string; matterId: string; firmId: string; templateName: string }) {
+  const session = await getServerSession(authOptions) as iSession;
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+  }
+
   const template = await prisma.matterTemplate.findFirst({
     where: {
+      userId: session.user.id,
       firmId: args.firmId,
       name: args.templateName
     },
@@ -118,6 +132,15 @@ async function applyTemplateToMatter(args: { matterId: string; firmId: string; t
         expectedDurationDays: group.expectedDurationDays
       }
     });
+
+    await logActivity(
+      session.user.id,
+      "CREATE",
+      "checklistGroup",
+      createdGroup.id,
+      group.title
+    );
+
     groupMap.set(group.id, createdGroup.id);
     orderedGroups.push({ id: createdGroup.id, sortOrder: createdGroup.sortOrder });
   }
@@ -134,6 +157,14 @@ async function applyTemplateToMatter(args: { matterId: string; firmId: string; t
         completed: false
       }
     });
+
+    await logActivity(
+      session.user.id,
+      "CREATE",
+      "checklistStep",
+      args.matterId,
+      step.label
+    );
   }
 
   const firstGroup = orderedGroups.sort((a, b) => a.sortOrder - b.sortOrder)[0];
@@ -154,6 +185,12 @@ async function applyTemplateToMatter(args: { matterId: string; firmId: string; t
 }
 
 export async function POST(request: Request) {
+
+  const session = await getServerSession(authOptions) as iSession;
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+  }
+
   try {
     const { membership } = await requireFirmMembership();
     const payload = (await request.json()) as ImportPayload;
@@ -174,7 +211,10 @@ export async function POST(request: Request) {
     const duplicateRows: DuplicateRow[] = [];
 
     const existingClients = await prisma.client.findMany({
-      where: { firmId: membership.firmId },
+      where: { 
+        userId: session.user.id, 
+        firmId: membership.firmId 
+      },
       select: { id: true, name: true }
     });
     const clientByName = new Map<string, string>();
@@ -189,6 +229,7 @@ export async function POST(request: Request) {
 
     const existingMatters = await prisma.matter.findMany({
       where: {
+        userId: session.user.id, 
         firmId: membership.firmId,
         archivedAt: null
       },
@@ -280,6 +321,7 @@ export async function POST(request: Request) {
         if (!clientId) {
           const client = await prisma.client.create({
             data: {
+              userId: session.user.id, 
               firmId: membership.firmId,
               name: clientName,
               companyName: clientName,
@@ -290,6 +332,14 @@ export async function POST(request: Request) {
           });
           clientId = client.id;
           createdClients += 1;
+
+          await logActivity(
+            session.user.id,
+            "CREATE",
+            "client",
+            client.id,
+            `Client created name: ${clientName}`
+          );
         }
 
         if (normalizedClientName) {
@@ -313,6 +363,7 @@ export async function POST(request: Request) {
             title: matterTitle,
             blurb: matterSummary,
             clientId,
+            userId: session.user.id, 
             firmId: membership.firmId,
             engagementDate,
             dueDate,
@@ -322,10 +373,19 @@ export async function POST(request: Request) {
           }
         });
 
+        await logActivity(
+          session.user.id,
+          "CREATE",
+          "matter",
+          matter.id,
+          `matter created name: ${matterTitle}`
+        );
+
         matterKeySet.add(matterKey);
 
         if (templateName) {
-          const result = await applyTemplateToMatter({
+          const result: any = await applyTemplateToMatter({
+            userId: session.user.id,
             matterId: matter.id,
             firmId: membership.firmId,
             templateName

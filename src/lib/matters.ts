@@ -2,15 +2,25 @@ import { prisma } from "@/lib/prisma";
 import { getMatterPenaltyInfo } from "@/lib/matter-health";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { NextResponse } from "next/server";
 
-
+type iSession = {
+  user: {
+    id:string;
+    role: string;
+    parentId: string;
+  }
+}
 export async function getFirmMatters(firmId: string) {
 
-  const session = await getServerSession(authOptions);
-  
+  const session = await getServerSession(authOptions) as iSession;
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+  }
+  const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   return prisma.matter.findMany({
     where: {
-	  userId: session.user.id,
+	  userId: userid,
       firmId,
       archivedAt: null,
       closedAt: null
@@ -46,12 +56,16 @@ export async function getFirmMatters(firmId: string) {
 
 export async function getMatterById(id: string, firmId: string) {
 
-  const session = await getServerSession(authOptions);
-  
+ 
+  const session = await getServerSession(authOptions) as iSession;
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+  }
+   const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   return prisma.matter.findFirst({
     where: {
       id,
-	  userId: session.user.id,
+	    userId: userid,
       firmId,
       archivedAt: null,
       closedAt: null
