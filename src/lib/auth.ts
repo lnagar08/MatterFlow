@@ -34,7 +34,9 @@ function hasEmailProviderConfig() {
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
-    strategy: "jwt"
+    strategy: "jwt", 
+    maxAge: 24 * 60 * 60, // 1 Day (86400 Second)
+    updateAge: 6 * 60 * 60, // 6 Hours (Each 6 hours refresh session)
   },
   providers: [
     CredentialsProvider({

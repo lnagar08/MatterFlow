@@ -18,19 +18,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        {/* 2. Toaster component */}
-        <Toaster 
-          position="top-center" 
-          reverseOrder={false} 
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-          }}
-        />
-        <AuthProvider>
+        <Toaster position="top-center" />
+        <AuthProvider refetchInterval={3600}>
           {children}
         </AuthProvider>
       </body>

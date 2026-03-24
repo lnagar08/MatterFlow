@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { computeMatterFlags, diffInDays } from "@/lib/matter-flags";
 import { getGroupProgressStart, parseGroupProgress } from "@/lib/group-progress";
 import { daysUntilDue, isDueSoon, isOverdue, overdueDays, resolveStepDueDate } from "@/lib/step-overdue";
-
+import FlowHealthBar, { Step } from "@/components/FlowHealthBar";
 type ChecklistStep = {
   id: string;
   label: string;
@@ -663,7 +663,12 @@ export function MatterCard(props: MatterCardProps) {
     const { dueSoon, daysUntilDue } = getDueSoonState(step);
     const rowIsOverdue = overdue;
     const rowIsAtRisk = !overdue && dueSoon;
-
+const steps: Step[] = [
+    { key: "intake", label: "Intake", status: "done", positionPercent: 0 },
+    { key: "ppm", label: "PPM Drafting", status: "done", positionPercent: 33 },
+    { key: "sec", label: "SEC Filing", status: "flagged", positionPercent: 66 },
+    { key: "final", label: "Final Docs", status: "pending", positionPercent: 100 },
+  ];
     return (
       <div
         className={`checklist-step ${rowIsOverdue ? "penalty-highlight overdue-step" : rowIsAtRisk ? "at-risk-step" : ""}`}
@@ -1007,7 +1012,12 @@ export function MatterCard(props: MatterCardProps) {
 
     return { tone, title, detail };
   }, [flowState.statusClass, flowState.statusLabel, activeTimelineStage]);
-
+const steps: Step[] = [
+    { key: "intake", label: "Intake", status: "done", positionPercent: 0 },
+    { key: "ppm", label: "PPM Drafting", status: "done", positionPercent: 33 },
+    { key: "sec", label: "SEC Filing", status: "flagged", positionPercent: 66 },
+    { key: "final", label: "Final Docs", status: "pending", positionPercent: 100 },
+  ];
   return (
     <div className="matter-detail grid">
       <section className="glass-card matter-summary">
@@ -1033,6 +1043,9 @@ export function MatterCard(props: MatterCardProps) {
         <p className="matter-blurb">{blurb}</p>
       </section>
       {ENABLE_INLINE_FLOW_TIMELINE ? (
+        
+        <>
+        {/*<FlowHealthBar steps={steps} completed={7} total={8} expectedDays={14} overdueDays={7} />*/}
         <section className="glass-card flow-health-panel">
           <div className="flow-health-shell">
             <div className="flow-health-head">
@@ -1047,6 +1060,12 @@ export function MatterCard(props: MatterCardProps) {
                   ‹‹
                 </button>
                 <h3 style={{ margin: 0 }}>Flow Health Bar</h3>
+                {firstTimelineStage ? (
+              <div className="flow-health-first-stage" aria-label={`First flow stage ${firstTimelineStage.title}`}>
+                <span className="flow-health-first-check" aria-hidden="true">✓</span>
+                <span>{firstTimelineStage.title}</span>
+              </div>
+            ) : null}
               </div>
               <button
                 type="button"
@@ -1068,25 +1087,24 @@ export function MatterCard(props: MatterCardProps) {
                     : { width: "100%", minWidth: 0, gridTemplateColumns: stageGridColumns }
                 }
               >
+               
                 {timelineStages.map((stage, index) => {
                   const segmentTone = flowSegmentTone(stage.tone);
                   return (
                     <div key={`${stage.id}-node`} className="flow-health-stage-cell">
-                      <span className={`flow-health-segment ${segmentTone}`} aria-hidden="true" />
-                      <span className={`flow-health-node ${flowSegmentTone(stage.tone)}`}>{iconForTone(stage.tone)}</span>
-                      <span className="flow-health-node-label">{stage.title}</span>
+                     
+                        <span className={`flow-health-segment ${segmentTone}`} aria-hidden="true" />
+                        <span className={`flow-health-node ${flowSegmentTone(stage.tone)}`}>{iconForTone(stage.tone)}</span>
+                        <span className="flow-health-node-label">{stage.title}</span>
+                      
                     </div>
                   );
                 })}
+                  
               </div>
             </div>
 
-            {firstTimelineStage ? (
-              <div className="flow-health-first-stage" aria-label={`First flow stage ${firstTimelineStage.title}`}>
-                <span className="flow-health-first-check" aria-hidden="true">✓</span>
-                <span>{firstTimelineStage.title}</span>
-              </div>
-            ) : null}
+            
 
             <div className="flow-health-divider" />
 
@@ -1107,6 +1125,7 @@ export function MatterCard(props: MatterCardProps) {
             </div>
           </div>
         </section>
+        </>
       ) : null}
       {penaltyReason ? (
         <div className="card matter-penalty-note">

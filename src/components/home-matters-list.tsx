@@ -368,9 +368,9 @@ export function HomeMattersList({
                 <button type="button" className="button" onClick={() => setImportOpen(true)}>
                   Import CSV
                 </button>
-                <button type="button" className="button" onClick={() => setMockupLayout(false)}>
+                {/*<button type="button" className="button" onClick={() => setMockupLayout(false)}>
                   Switch to Classic Layout
-                </button>
+                </button>*/}
               </div>
             </header>
 
