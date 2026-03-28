@@ -7,7 +7,7 @@ import { requireFirmMembership } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
 import { getFirmTemplates } from "@/lib/templates";
 import { NextResponse } from "next/server";
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 export const dynamic = "force-dynamic";
 type iSession = {
   user: {
@@ -23,7 +23,7 @@ type iSession = {
 export default async function NewMatterPage() {
   const session = await getServerSession(authOptions) as iSession;
   if (!session || !session.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+    notFound();
   }
   const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   if(session.user.role === 'STAFF' && !session.user.permissions.addMatter){

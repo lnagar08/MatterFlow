@@ -6,6 +6,7 @@ import { ArchivedMatterActions } from "@/components/archived-matter-actions";
 import { requireFirmMembership } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { notFound } from "next/navigation";
 export const dynamic = "force-dynamic";
 type iSession = {
   user: {
@@ -17,7 +18,7 @@ type iSession = {
 export default async function ArchivedMattersPage() {
   const session = await getServerSession(authOptions) as iSession;
   if (!session || !session.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+    notFound();
   }
   const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   const { membership } = await requireFirmMembership();

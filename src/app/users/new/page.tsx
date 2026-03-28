@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { AppNav } from "@/components/app-nav";
 import AddUserModal from "@/components/AddUserModal";
 import { NextResponse } from "next/server";
+import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 type iSession = {
@@ -14,7 +15,7 @@ type iSession = {
 export default async function NewUserPage() {
   const session = await getServerSession(authOptions) as iSession;
   if (!session || !session.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+    notFound();
   }
   const attorneyId = session.user.id;
   return (
