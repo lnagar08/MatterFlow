@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth"; 
 import { authOptions } from "@/lib/auth";
 import StaffAction from "./StaffAction";
+import { notFound } from "next/navigation";
 type iSession = {
   user: {
     id:string;
@@ -12,7 +13,7 @@ type iSession = {
 export default async function TeamTable() {
   const session = await getServerSession(authOptions) as iSession;
     if (!session || !session.user) {
-      //return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+      notFound();
     }
   const attorneyId = session.user.id;
   const team = await prisma.user.findMany({

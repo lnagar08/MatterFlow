@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getMatterPenaltyInfo } from "@/lib/matter-health";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import { notFound } from "next/navigation";
 
 type iSession = {
   user: {
@@ -15,7 +15,7 @@ export async function getFirmMatters(firmId: string) {
 
   const session = await getServerSession(authOptions) as iSession;
   if (!session || !session.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+    notFound();
   }
   const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   return prisma.matter.findMany({
@@ -59,7 +59,7 @@ export async function getMatterById(id: string, firmId: string) {
  
   const session = await getServerSession(authOptions) as iSession;
   if (!session || !session.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+    notFound();
   }
    const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   return prisma.matter.findFirst({

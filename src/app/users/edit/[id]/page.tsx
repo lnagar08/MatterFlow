@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getServerSession } from "next-auth"; 
 import { authOptions } from "@/lib/auth";
 import { AppNav } from "@/components/app-nav";
-import { NextResponse } from "next/server";
 import EditStaffForm from "@/components/EditStaffForm";
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";

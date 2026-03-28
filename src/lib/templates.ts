@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import { notFound } from "next/navigation";
 
 type iSession = {
   user: {
@@ -14,7 +14,7 @@ type iSession = {
 export async function getFirmTemplates(firmId: string) {
   const session = await getServerSession(authOptions) as iSession;
   if (!session || !session.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
+    notFound();
   }
 const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
   return prisma.matterTemplate.findMany({

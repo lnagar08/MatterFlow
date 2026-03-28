@@ -2,7 +2,6 @@ import { Prisma } from "@prisma/client";
 import { buildGroupProgressPayload, getTemplateLink, parseGroupProgress } from "@/lib/group-progress";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
-import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 type iSession = {
   user: {
