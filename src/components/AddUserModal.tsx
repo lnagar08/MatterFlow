@@ -69,35 +69,50 @@ export default function AddUserModal({ attorneyId }: { attorneyId: string }) {
       )}
 
       <form onSubmit={onSubmit} className="card grid matter-create-card">
-        <div className="flex flex-col gap-1">
-          <input name="name" type="text" placeholder="Enter Name" className="input" />
-          {fieldErrors.name && <span className="text-red-500 text-xs">{fieldErrors.name[0]}</span>}
+        <div className="row">
+          <div className="col-12">
+            <div className="form-group">
+              <label htmlFor="name">Full Name</label>
+              <input name="name" type="text" placeholder="Enter Full Name" className="input" />
+              {fieldErrors.name && <span className="text-red-500 text-xs">{fieldErrors.name[0]}</span>}
+            </div>
+          </div>
         </div>
-
-        <div className="flex flex-col gap-1">
-          <input name="email" type="email" placeholder="Enter Email" className="input" />
-          {fieldErrors.email && <span className="text-red-500 text-xs">{fieldErrors.email[0]}</span>}
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <input name="password" type="password" placeholder="Enter Password" className="input" />
-          {fieldErrors.password && <span className="text-red-500 text-xs">{fieldErrors.password[0]}</span>}
+        <div className="row">
+          <div className="col-6">
+            <div className="form-group">
+              <label htmlFor="email">Email Address</label>
+              <input name="email" type="email" placeholder="Enter Email Address" className="input" />
+              {fieldErrors.email && <span className="text-red-500 text-xs">{fieldErrors.email[0]}</span>}
+            </div>
+          </div>
+          <div className="col-6">
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input name="password" type="password" placeholder="Enter Password" className="input" />
+              {fieldErrors.password && <span className="text-red-500 text-xs">{fieldErrors.password[0]}</span>}
+            </div>
+          </div>
         </div>
         
         <div className="row">
-          <div className="space-y-2">
-            <p className="font-semibold">Permissions:</p>
-            {["addMatter", "viewMatter", "editMatter", "addClient", "addTemplates"].map((perm) => (
-              <label key={perm} className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" name="permissions" value={perm} /> {perm.replace(/([A-Z])/g, ' $1')}
-              </label>
-            ))}
+          <div className="col-12">
+            <div className="form-group">
+            <label className="font-semibold">Permissions:</label>
+            <div className="permission-checklist">
+              {["addMatter", "viewMatter", "editMatter", "addClient", "addTemplates"].map((perm) => (
+                <label key={perm} className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" name="permissions" value={perm} /> {perm.replace(/([A-Z])/g, ' $1')}
+                </label>
+              ))}
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="row" style={{ gap: 10 }}>
+        <div className="row temp-action-row" style={{ gap: 10 }}>
           <button type="submit" className="button primary" disabled={isSubmiting}>
-            {isSubmiting ? "Creating..." : "Create User"}
+            {isSubmiting ? "Submitting..." : "Submit"}
           </button>
         </div>
       </form>

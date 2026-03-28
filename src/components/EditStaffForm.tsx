@@ -76,45 +76,57 @@ export default function EditStaffForm({ attorneyId, initialData }: { attorneyId:
       )}
 
       <form onSubmit={onSubmit} className="card grid matter-create-card">
-        <div className="flex flex-col gap-1">
-          <input 
-            name="name" 
-            type="text" 
-            placeholder="Enter Name" 
-            className="input" 
-            defaultValue={initialData?.name || ""} 
-            />
-          {fieldErrors.name && <span className="text-red-500 text-xs">{fieldErrors.name[0]}</span>}
-        </div>
-
-        <input type="hidden" name="userId" value={initialData.id} />
-        <div className="flex flex-col gap-1">
-          <input 
-            name="email" 
-            type="email" 
-            placeholder="Enter Email" 
-            className="input" 
-            defaultValue={initialData?.email || ""} 
-            readOnly
-/>
-          {fieldErrors.email && <span className="text-red-500 text-xs">{fieldErrors.email[0]}</span>}
-        </div>
-        
         <div className="row">
-          <div className="space-y-2">
-            <p className="font-semibold">Permissions:</p>
-            {["addMatter", "viewMatter", "editMatter", "addClient", "addTemplates"].map((perm) => (
-            <label key={perm} className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" name="permissions" defaultChecked={hasPermission(perm)}  value={perm} /> {perm.replace(/([A-Z])/g, ' $1')}
-                
-            </label>
-            ))}
+          <div className="col-6">
+            <div className="form-group">
+              <label htmlFor="name">Full Name</label>
+              <input 
+                name="name" 
+                type="text" 
+                placeholder="Enter Full Name" 
+                className="input" 
+                defaultValue={initialData?.name || ""} 
+                />
+              {fieldErrors.name && <span className="text-red-500 text-xs">{fieldErrors.name[0]}</span>}
+            </div>
+          </div>
+          <div className="col-6">
+            <div className="form-group">
+              <label htmlFor="email">Email Address</label>
+              <input 
+                name="email" 
+                type="email" 
+                placeholder="Enter Email Address" 
+                className="input" 
+                defaultValue={initialData?.email || ""} 
+                readOnly
+              />
+              {fieldErrors.email && <span className="text-red-500 text-xs">{fieldErrors.email[0]}</span>}
+            </div>
           </div>
         </div>
 
-        <div className="row" style={{ gap: 10 }}>
+        <input type="hidden" name="userId" value={initialData.id} />
+        
+        <div className="row">
+          <div className="col-12">
+            <div className="form-group">
+              <label className="font-semibold">Permissions:</label>
+              <div className="permission-checklist">
+                {["addMatter", "viewMatter", "editMatter", "addClient", "addTemplates"].map((perm) => (
+                <label key={perm} className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="permissions" defaultChecked={hasPermission(perm)}  value={perm} /> {perm.replace(/([A-Z])/g, ' $1')}
+                    
+                </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="row temp-action-row" style={{ gap: 10 }}>
           <button type="submit" className="button primary" disabled={isSubmiting}>
-            {isSubmiting ? "Updating..." : "Update User"}
+            {isSubmiting ? "Updating..." : "Update"}
           </button>
         </div>
       </form>

@@ -49,8 +49,9 @@ type iSession = {
 
 export default async function MatterDetailPage({ params, searchParams }: MatterDetailPageProps) {
   const session = await getServerSession(authOptions) as iSession;
-  //
-  if(session.user.role === 'STAFF' && session.user.permissions.viewMatter == false){
+
+  const isViewMetterPermission = (session.user.role === 'STAFF' && !session.user.permissions.viewMatter? true: false);
+  if(isViewMetterPermission){
     redirect('/access-denied');
   }
 
@@ -209,7 +210,8 @@ export default async function MatterDetailPage({ params, searchParams }: MatterD
             </div>
           ) : null}
         </div>
-        <div className="row matter-hero-actions">
+        {!isEditMetterPermission ? (
+          <div className="row matter-hero-actions">
           <ApplyTemplateControl
             matterId={matter.id}
             templates={templates.map((template) => ({ id: template.id, name: template.name }))}
@@ -217,6 +219,10 @@ export default async function MatterDetailPage({ params, searchParams }: MatterD
           />
           <MatterActions matterId={matter.id} />
         </div>
+        ) : (
+          <></>
+        )}
+        
       </section>
        {isEditMetterPermission ? (
   

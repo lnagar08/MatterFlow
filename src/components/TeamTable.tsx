@@ -21,28 +21,28 @@ export default async function TeamTable() {
 
   
   return (
-    <div className="p-6">
+    <div className="table-responsive">
 
-      <table className="min-w-full border">
+      <table className="min-w-full border table">
         <thead>
-          <tr className="bg-gray-100">
-            <th className="p-2 text-left">Name</th>
-            <th className="p-2 text-left">Email</th>
-            <th className="p-2 text-left">Permissions</th>
-            <th className="p-2 text-left">Actions</th>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Permissions</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {team.map((member) => (
-            <tr key={member.id} className="border-t">
-              <td className="p-2">{member.name}</td>
-              <td className="p-2">{member.email}</td>
-              <td className="p-2 text-xs">
+            <tr key={member.id}>
+              <td>{member.name}</td>
+              <td>{member.email}</td>
+              <td>
                 {Object.entries(member.permissions as object)
                   .filter(([_, val]) => val)
                   .map(([key]) => key).join(", ")}
               </td>
-              <td className="p-2">
+              <td>
                 <StaffAction memberId={member.id} />
               </td>
             </tr>

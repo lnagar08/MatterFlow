@@ -6,7 +6,7 @@ import { AuthProvider } from "@/components/providers/session-provider";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
-  title: "MatterFlow",
+  title: "FlowGuardian",
   description: "Matter workflow tracker for law firms"
 };
 

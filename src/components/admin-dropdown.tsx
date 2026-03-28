@@ -25,7 +25,7 @@ export function AdminDropdown() {
 
   const userName = session?.user?.name || session?.user?.email?.split('@')[0] || "Admin";
   const shortName = initialsFromName(userName);
-
+  
   if (status === "loading") return <div>Loading...</div>;
   if (!session) return null;
 
@@ -36,15 +36,15 @@ export function AdminDropdown() {
           {shortName}
         </span>
         <span className="admin-pill-name">{userName}</span>
-        <span aria-hidden="true">▾</span>
+        
       </summary>
       <div className="admin-dropdown__panel avatar-panel absolute right-0 mt-2 w-48 rounded-xl bg-white p-2 z-50">
-        {/*<Link href="/users" className="admin-dropdown__item">
-          User Management
-        </Link>
-        <Link href="/settings/users" className="admin-dropdown__item">
-          Users
-        </Link>*/}
+        {session?.user?.role === 'ATTORNEY' && (
+          <Link href="/users" className="admin-dropdown__item">
+            Team management
+          </Link>
+        )}
+        
         <Link href="/rules" className="admin-dropdown__item">
           Flow Controls
         </Link>

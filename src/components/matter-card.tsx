@@ -690,19 +690,21 @@ const steps: Step[] = [
         />
         <span className="step-label-wrap">
           <span className="step-title">{step.label}</span>
-          {dueDate ? (
-            <span className="step-meta">
-              {`Due ${asFriendlyDate(dueDate.toISOString())}`}
-              {overdue ? ` • Overdue by ${daysLate} ${daysLate === 1 ? "day" : "days"}` : ""}
-            </span>
-          ) : hasCustomDueAt ? (
-            <span className="step-meta">{`Due ${asFriendlyDate(step.dueAt as string)}`}</span>
-          ) : step.dueDaysOffset !== null ? (
-            <span className="step-meta">{`Default due +${step.dueDaysOffset}d`}</span>
-          ) : null}
-          {step.completedAt ? (
-            <span className="step-meta">{`Completed ${asFriendlyDate(step.completedAt)}`}</span>
-          ) : null}
+          <div className="step-meta-box">
+            {dueDate ? (
+              <span className="step-meta">
+                <strong>Due</strong>{asFriendlyDate(dueDate.toISOString())}
+                {overdue ? ` • Overdue by ${daysLate} ${daysLate === 1 ? "day" : "days"}` : ""}
+              </span>
+            ) : hasCustomDueAt ? (
+              <span className="step-meta"><strong>Due</strong> {asFriendlyDate(step.dueAt as string)}</span>
+            ) : step.dueDaysOffset !== null ? (
+              <span className="step-meta"><strong>Default due +</strong>{step.dueDaysOffset}d`</span>
+            ) : null}
+            {step.completedAt ? (
+              <span className="step-meta"><strong>Completed</strong> {asFriendlyDate(step.completedAt)}</span>
+            ) : null}
+          </div>
         </span>
         {overdue ? (
           <span className="status overdue step-overdue-badge" aria-label={`Overdue by ${daysLate} days`}>
@@ -715,7 +717,7 @@ const steps: Step[] = [
         ) : null}
         <button
           type="button"
-          className="button btn-secondary-soft"
+          className="button btn-secondary-soft btn-due-date"
           aria-label="Set due date"
           title="Set due date"
           disabled={isPending}
@@ -730,7 +732,7 @@ const steps: Step[] = [
         {step.completed ? (
           <button
             type="button"
-            className="button btn-secondary-soft"
+            className="button btn-secondary-soft btn-complete-date"
             aria-label="Set completed date"
             title="Set completed date"
             disabled={isPending}
@@ -904,6 +906,37 @@ const steps: Step[] = [
       const overByDays = Math.max(0, elapsedDays - limitDays);
       const daysToLimit = Math.max(0, limitDays - elapsedDays);
 
+      // NEW: step-level mapping
+    const steps = group.steps.map((step) => {
+      const overdueState = getOverdueState(step);
+      const dueSoonState = getDueSoonState(step, now);
+
+      let tone: "in" | "risk" | "out" | "upcoming" | "done" = "upcoming";
+      let statusText = "Not started";
+
+      if (step.completed) {
+        tone = "done";
+        statusText = "done";
+      } else if (overdueState.overdue) {
+        tone = "out";
+        statusText = `out`;
+      } else if (dueSoonState.dueSoon) {
+        tone = "risk";
+        statusText = "risk";
+      } else {
+        tone = isCurrent ? "in" : "upcoming";
+        statusText = "in";
+      }
+
+      return {
+        id: step.id,
+        title: step.label,
+        completed: step.completed,
+        tone,
+        statusText,
+        dueDaysOffset: step.dueDaysOffset,
+      };
+    });
       return {
         id: group.id,
         title: group.title,
@@ -919,7 +952,8 @@ const steps: Step[] = [
         overdueCount,
         maxOverdueDays,
         overByDays,
-        daysToLimit
+        daysToLimit,
+        steps // <-- include step breakdown here
       };
     });
   }, [
@@ -969,10 +1003,24 @@ const steps: Step[] = [
     return tone;
   }
 
+  function flowSegmentToneStep(tone: "in" | "risk" | "out" | "upcoming" | "done") {
+    if (tone === "done") return "done";
+    if (tone === "upcoming") return "upcoming";
+    return tone;
+  }
+
   function iconForTone(tone: "in" | "risk" | "out" | "upcoming" | "done") {
     if (tone === "out") return "!";
     if (tone === "risk") return "△";
     if (tone === "in" || tone === "done") return "✓";
+    return "•";
+  }
+
+  function iconForToneStep(tone: "in" | "risk" | "out" | "upcoming" | "done") {
+    if (tone === "out") return "!";
+    if (tone === "risk") return "△";
+    if (tone === "done") return "✓";
+    if (tone === "in") return "•";
     return "•";
   }
 
@@ -1030,14 +1078,17 @@ const steps: Step[] = [
             className="logo"
           />
           <div className="matter-summary-id">
-            <h2 style={{ margin: 0 }}>{clientName}</h2>
+            <div className="name-status-box">
+              <h2 style={{ margin: 0 }}>{clientName}</h2>
+              <div className={`home-health-badge ${flowState.statusClass}`}>{flowState.statusLabel}</div>
+            </div>
             <div className="meta matter-company">{companyName}</div>
           </div>
         </div>
         <div className="row matter-meta-row">
-          <div className="pill">Engagement Date: {engagementDate}</div>
-          <div className="pill">Amount Paid: {amountPaid}</div>
-          <div className={`home-health-badge ${flowState.statusClass}`}>{flowState.statusLabel}</div>
+          <div className="pill"><strong>Engagement Date:</strong> {engagementDate}</div>
+          <div className="pill"><strong>Amount Paid:</strong> {amountPaid}</div>
+          
         </div>
         <p className="meta" style={{ margin: "0 0 10px" }}>{flowState.reason}</p>
         <p className="matter-blurb">{blurb}</p>
@@ -1045,6 +1096,7 @@ const steps: Step[] = [
       {ENABLE_INLINE_FLOW_TIMELINE ? (
         
         <>
+        
         {/*<FlowHealthBar steps={steps} completed={7} total={8} expectedDays={14} overdueDays={7} />*/}
         <section className="glass-card flow-health-panel">
           <div className="flow-health-shell">
@@ -1062,8 +1114,9 @@ const steps: Step[] = [
                 <h3 style={{ margin: 0 }}>Flow Health Bar</h3>
                 {firstTimelineStage ? (
               <div className="flow-health-first-stage" aria-label={`First flow stage ${firstTimelineStage.title}`}>
-                <span className="flow-health-first-check" aria-hidden="true">✓</span>
+                
                 <span>{firstTimelineStage.title}</span>
+                <span className="flow-health-first-check" aria-hidden="true">✓</span>
               </div>
             ) : null}
               </div>
@@ -1087,8 +1140,29 @@ const steps: Step[] = [
                     : { width: "100%", minWidth: 0, gridTemplateColumns: stageGridColumns }
                 }
               >
-               
-                {timelineStages.map((stage, index) => {
+               {timelineStages.map((stage) => {
+                  const segmentTone = flowSegmentTone(stage.tone);
+                  return (
+                    <div key={`${stage.id}-node`} className="flow-health-stage-cell">
+                      
+                      {/* NEW: Step-level breakdown */}
+                      <div className="flow-health-step-list-n">
+                        {stage.steps.map((step) => (
+                          
+                          <div key={`${step.id}-node`} className="flow-health-stage-cell-n">
+                     
+                              <span className={`flow-health-segment-n ${step.statusText}`} aria-hidden="true" />
+                              <span className={`flow-health-node-n ${flowSegmentToneStep(step.tone)}`}>{iconForToneStep(step.tone)}</span>
+                              <span className="flow-health-node-label-n">{step.title}</span>
+                            
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/*timelineStages.map((stage, index) => {
                   const segmentTone = flowSegmentTone(stage.tone);
                   return (
                     <div key={`${stage.id}-node`} className="flow-health-stage-cell">
@@ -1099,14 +1173,10 @@ const steps: Step[] = [
                       
                     </div>
                   );
-                })}
+                })*/}
                   
               </div>
             </div>
-
-            
-
-            <div className="flow-health-divider" />
 
             <div className="flow-health-summary-row">
               <article className={`flow-health-summary-card ${activeTimelineStage?.tone ?? "upcoming"}`}>

@@ -111,7 +111,7 @@ export default function RegisterForm() {
 
   return (
     // Main Wrapper: Centered layout with a light grey background
-    <div className="min-h-screen flex items-center justify-center bg-[#f9fafb] p-6">
+    <div className="user-form-section min-h-screen flex items-center justify-center bg-[#f9fafb] p-6">
       
       {/* Form Container: Card style with shadow and border */}
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-200 p-10">
@@ -121,7 +121,7 @@ export default function RegisterForm() {
           <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-4">
             <ShieldCheck className="h-6 w-6 text-blue-600" />
           </div>
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Join MatterFlow</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Join FlowGuardian</h1>
           <p className="text-sm text-gray-500 mt-2 font-medium">Create an account to start managing cases</p>
         </div>
 

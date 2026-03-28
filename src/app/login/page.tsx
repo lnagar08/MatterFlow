@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   return (
     // Main Wrapper: Centered layout with a soft grey background
-    <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] p-4">
+    <div className="user-form-section flex min-h-screen items-center justify-center bg-[#f9fafb] p-4">
       
       {/* Login Card: Professional shadow and rounded corners */}
       <div className="w-full max-w-md bg-white p-10 shadow-xl rounded-2xl border border-gray-100">
@@ -49,7 +49,7 @@ export default function LoginPage() {
             <LogIn className="h-6 w-6 text-blue-600" />
           </div>
           <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">Login</h2>
-          <p className="text-sm text-gray-500 mt-2 font-medium">Welcome back to MatterFlow</p>
+          <p className="text-sm text-gray-500 mt-2 font-medium">Welcome back to FlowGuardian</p>
         </div>
         
         {/* Error Feedback */}

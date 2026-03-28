@@ -81,7 +81,7 @@ export function ApplyTemplateControl({ matterId, templates, isEditMetterPermissi
       </select>
 
       <button type="button" className="button btn-primary-soft" disabled={busy} onClick={onApply}>
-        {busy ? "Applying..." : "Apply MatterFlow"}
+        {busy ? "Applying..." : "Apply FlowGuardian"}
       </button>
 
       {error ? <span className="meta matter-control-error">{error}</span> : null}

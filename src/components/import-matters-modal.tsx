@@ -59,7 +59,7 @@ type ImportResponse = {
 const CANONICAL_FIELDS: Array<{ key: CanonicalField; label: string; required?: boolean }> = [
   { key: "matterTitle", label: "Matter Title", required: true },
   { key: "clientName", label: "Client Name", required: true },
-  { key: "templateName", label: "MatterFlow Name" },
+  { key: "templateName", label: "FlowGuardian Name" },
   { key: "matterSummary", label: "Matter Summary" },
   { key: "engagementDate", label: "Engagement Date" },
   { key: "dueDate", label: "Due Date" },
@@ -128,7 +128,7 @@ function downloadTemplateCSV() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "matterflow-matters-template.csv";
+  link.download = "FlowGuardian-matters-template.csv";
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -217,7 +217,7 @@ export function ImportMattersModal({ open, onClose }: Props) {
         rowNumber: source.rowNumber,
         matterTitle: read("matterTitle"),
         clientName: read("clientName"),
-        templateName: read("templateName") || "No MatterFlow",
+        templateName: read("templateName") || "No FlowGuardian",
         matterSummary: read("matterSummary"),
         engagementDate,
         dueDate,
@@ -432,7 +432,7 @@ export function ImportMattersModal({ open, onClose }: Props) {
         rows: summary.valid.map((row) => ({
           matterTitle: row.matterTitle,
           clientName: row.clientName,
-      templateName: row.templateName === "No MatterFlow" ? "" : row.templateName,
+      templateName: row.templateName === "No FlowGuardian" ? "" : row.templateName,
           matterSummary: row.matterSummary,
           engagementDate: row.engagementDate ?? "",
           dueDate: row.dueDate ?? "",
@@ -491,11 +491,11 @@ export function ImportMattersModal({ open, onClose }: Props) {
                   <strong>Export or copy your data</strong>
                   <div>PracticePanther / Clio: Export matters/clients to CSV (or export to Excel, then Save As CSV)</div>
                   <div>Excel: Save As → CSV</div>
-                  <div>Word/PDF: copy/paste the rows into ChatGPT and ask it to convert into our MatterFlow CSV</div>
+                  <div>Word/PDF: copy/paste the rows into ChatGPT and ask it to convert into our FlowGuardian CSV</div>
                 </li>
                 <li>
-                  <strong>Use our MatterFlow headers</strong>
-                  <div>Download the MatterFlow template below and make sure your CSV uses the same header names</div>
+                  <strong>Use our FlowGuardian headers</strong>
+                  <div>Download the FlowGuardian template below and make sure your CSV uses the same header names</div>
                 </li>
                 <li>
                   <strong>Upload and preview</strong>
@@ -524,7 +524,7 @@ export function ImportMattersModal({ open, onClose }: Props) {
 
             <div className="import-actions-row">
               <button type="button" className="button" onClick={downloadTemplateCSV}>
-                Download CSV MatterFlow Template
+                Download CSV FlowGuardian Template
               </button>
               <label className="button">
                 Upload CSV
@@ -639,7 +639,7 @@ export function ImportMattersModal({ open, onClose }: Props) {
                     <th>Row</th>
                     <th>Matter Title</th>
                     <th>Client Name</th>
-                    <th>MatterFlow Name</th>
+                    <th>FlowGuardian Name</th>
                     <th>Matter Summary</th>
                     <th>Engagement Date</th>
                     <th>Due Date</th>
@@ -656,7 +656,7 @@ export function ImportMattersModal({ open, onClose }: Props) {
                         <td>{row.rowNumber}</td>
                         <td>{row.matterTitle || "—"}</td>
                         <td>{row.clientName || "—"}</td>
-                        <td>{row.templateName || "No MatterFlow"}</td>
+                        <td>{row.templateName || "No FlowGuardian"}</td>
                         <td>{row.matterSummary || "—"}</td>
                         <td>{row.engagementDate || "—"}</td>
                         <td>{row.dueDate || "—"}</td>
@@ -691,7 +691,7 @@ export function ImportMattersModal({ open, onClose }: Props) {
 
         {headerError ? (
           <div className="import-error">
-            {headerError} <button type="button" className="button" onClick={downloadTemplateCSV}>Download MatterFlow template</button>
+            {headerError} <button type="button" className="button" onClick={downloadTemplateCSV}>Download FlowGuardian template</button>
           </div>
         ) : null}
         {parseError ? <div className="import-error">{parseError}</div> : null}

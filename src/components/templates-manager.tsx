@@ -119,7 +119,7 @@ export function TemplatesManager({ initialTemplates, isTemplatePermission }: Pro
         })
       });
       if (!templateOrderResponse.ok) {
-        throw new Error("Failed to save MatterFlow order.");
+        throw new Error("Failed to save FlowGuardian order.");
       }
 
       for (const template of orderedTemplates) {
@@ -132,7 +132,7 @@ export function TemplatesManager({ initialTemplates, isTemplatePermission }: Pro
           body: JSON.stringify({ name: template.name })
         });
         if (!nameResponse.ok) {
-          throw new Error(`Failed to save MatterFlow "${template.name}".`);
+          throw new Error(`Failed to save FlowGuardian "${template.name}".`);
         }
 
         for (const group of groups) {
@@ -182,7 +182,7 @@ export function TemplatesManager({ initialTemplates, isTemplatePermission }: Pro
       await refreshTemplates();
       setHasUnsavedChanges(false);
       pushReorderDebug("save success");
-      showSaved("All MatterFlow changes saved.");
+      showSaved("All FlowGuardian changes saved.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to save changes.";
       pushReorderDebug(`save failed: ${message}`);
@@ -266,7 +266,7 @@ export function TemplatesManager({ initialTemplates, isTemplatePermission }: Pro
     });
   }
 
-  async function createTemplate(name = "New MatterFlow") {
+  async function createTemplate(name = "New FlowGuardian") {
     if(isTemplatePermission){
         redirect('/access-denied');
     }
@@ -685,7 +685,7 @@ export function TemplatesManager({ initialTemplates, isTemplatePermission }: Pro
   return (
     <div className="grid templates-workbench">
       <div className="templates-tabs-row card">
-        <div className="templates-view-tabs" role="tablist" aria-label="MatterFlow views">
+        <div className="templates-view-tabs" role="tablist" aria-label="FlowGuardian views">
           <button
             type="button"
             className={`templates-view-tab ${activeTab === "workflow" ? "active" : ""}`}
@@ -796,22 +796,22 @@ export function TemplatesManager({ initialTemplates, isTemplatePermission }: Pro
                   </div>
 
                   <div className="row template-card-actions">
-                    {reorderMode ? <span className="template-drag-handle" aria-label="Drag MatterFlow">⋮⋮</span> : null}
+                    {reorderMode ? <span className="template-drag-handle" aria-label="Drag FlowGuardian">⋮⋮</span> : null}
                     <button
                       type="button"
                       className="button btn-secondary-soft"
                       disabled={busy === `duplicate-${template.id}`}
                       onClick={() => duplicateTemplate(template)}
                     >
-                    {busy === `duplicate-${template.id}` ? "Duplicating..." : "Duplicate MatterFlow"}
+                    {busy === `duplicate-${template.id}` ? "Duplicating..." : "Duplicate FlowGuardian"}
                     </button>
                     <button
                       type="button"
                       className="button btn-danger-ghost"
-                      title="Delete MatterFlow"
+                      title="Delete FlowGuardian"
                       onClick={() => deleteTemplate(template.id)}
                     >
-                      Delete
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.687 6.21311L6.8 18.9761C6.89665 19.5604 7.19759 20.0914 7.6492 20.4745C8.10081 20.8576 8.67377 21.068 9.266 21.0681H12.614M19.312 6.21311L17.2 18.9761C17.1033 19.5604 16.8024 20.0914 16.3508 20.4745C15.8992 20.8576 15.3262 21.068 14.734 21.0681H11.386M10.022 11.1161V16.1651M13.978 11.1161V16.1651M2.75 6.21311H21.25M14.777 6.21311V4.43311C14.777 4.03528 14.619 3.65375 14.3377 3.37245C14.0564 3.09114 13.6748 2.93311 13.277 2.93311H10.723C10.3252 2.93311 9.94364 3.09114 9.66234 3.37245C9.38104 3.65375 9.223 4.03528 9.223 4.43311V6.21311H14.777Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path></svg>
                     </button>
                   </div>
                 </div>
@@ -1228,7 +1228,7 @@ export function TemplatesManager({ initialTemplates, isTemplatePermission }: Pro
                                             →
                                           </button>
                                         </div>
-                                        <span className="meta">Depends on: Prior Flow Step</span>
+                                        <span className="meta"><strong>Depends on:</strong> Prior Flow Step</span>
                                         <button className="icon-danger" onClick={() => deleteStep(step.id)} title="Delete Flow Step">
                                           ×
                                         </button>
@@ -1334,9 +1334,11 @@ export function TemplatesManager({ initialTemplates, isTemplatePermission }: Pro
             );
           })}
 
-          <button className="button primary templates-add-btn" onClick={() => createTemplate()} disabled={busy === "create-template"}>
-            {busy === "create-template" ? "Adding..." : "+ Add New MatterFlow"}
+          <div className="template-action-box">
+            <button className="button primary templates-add-btn" onClick={() => createTemplate()} disabled={busy === "create-template"}>
+            {busy === "create-template" ? "Adding..." : "+ Add New FlowGuardian"}
           </button>
+          </div>
         </div>
       ) : null}
 
@@ -1348,33 +1350,51 @@ export function TemplatesManager({ initialTemplates, isTemplatePermission }: Pro
               <div key={template.id} className="template-card template-panel-placeholder">
                 <h3 style={{ margin: 0 }}>{template.name}</h3>
                 <div className="row">
-                  <label className="meta">
-                    Out of Flow Rule (days in Flow Step)
-                    <input
-                      className="input"
-                      type="number"
-                      value={rule.bottleneckDays}
-                      onChange={(event) => updateStatusRule(template.id, "bottleneckDays", event.target.value)}
-                    />
-                  </label>
-                  <label className="meta">
-                    At Flow Risk Rule (days before due)
-                    <input
-                      className="input"
-                      type="number"
-                      value={rule.atRiskDays}
-                      onChange={(event) => updateStatusRule(template.id, "atRiskDays", event.target.value)}
-                    />
-                  </label>
-                  <label className="meta">
-                    Overdue Rule (days past due)
-                    <input
-                      className="input"
-                      type="number"
-                      value={rule.overdueDays}
-                      onChange={(event) => updateStatusRule(template.id, "overdueDays", event.target.value)}
-                    />
-                  </label>
+                  <div className="col-6">
+                    <div className="form-group">
+                      <label className="meta">
+                        Out of Flow Rule (days in Flow Step)
+                        </label>
+                        <input
+                          className="input"
+                          type="number"
+                          value={rule.bottleneckDays}
+                          onChange={(event) => updateStatusRule(template.id, "bottleneckDays", event.target.value)}
+                        />
+                      
+                    </div>
+                  </div>
+                  
+                  <div className="col-6">
+                    <div className="form-group">
+                      <label className="meta">
+                        At Flow Risk Rule (days before due)
+                        </label>
+                        <input
+                          className="input"
+                          type="number"
+                          value={rule.atRiskDays}
+                          onChange={(event) => updateStatusRule(template.id, "atRiskDays", event.target.value)}
+                        />
+                      
+                    </div>
+                  </div>
+                  
+                  <div className="col-6">
+                    <div className="form-group">
+                      <label className="meta">
+                        Overdue Rule (days past due)
+                        </label>
+                        <input
+                          className="input"
+                          type="number"
+                          value={rule.overdueDays}
+                          onChange={(event) => updateStatusRule(template.id, "overdueDays", event.target.value)}
+                        />
+                      
+                    </div>
+                  </div>
+                  
                 </div>
               </div>
             );
@@ -1390,28 +1410,41 @@ export function TemplatesManager({ initialTemplates, isTemplatePermission }: Pro
               <div key={template.id} className="template-card template-panel-placeholder">
                 <h3 style={{ margin: 0 }}>{template.name}</h3>
                 <div className="row">
-                  <label className="meta">
-                    Default Flat Fee
-                    <input
-                      className="input"
-                      type="number"
-                      min={0}
-                      value={billing.flatFee}
-                      onChange={(event) => updateBillingDefault(template.id, "flatFee", event.target.value)}
-                    />
-                  </label>
-                  <label className="meta" style={{ minWidth: 260 }}>
-                    Revenue Recognition Rule
-                    <select
-                      className="input"
-                      value={billing.revenueRule}
-                      onChange={(event) => updateBillingDefault(template.id, "revenueRule", event.target.value)}
-                    >
-                      <option>Deferred until close</option>
-                      <option>Recognize at engagement</option>
-                      <option>Milestone based</option>
-                    </select>
-                  </label>
+                 
+                  <div className="col-6">
+                    <div className="form-group">
+                      <label className="meta">
+                        Default Flat Fee
+                        </label>
+                        <input
+                          className="input"
+                          type="number"
+                          min={0}
+                          value={billing.flatFee}
+                          onChange={(event) => updateBillingDefault(template.id, "flatFee", event.target.value)}
+                        />
+                      
+                    </div>
+                  </div>
+
+                  <div className="col-6">
+                    <div className="form-group">
+                      <label className="meta" style={{ minWidth: 260 }}>
+                        Revenue Recognition Rule
+                        </label>
+                        <select
+                          className="input"
+                          value={billing.revenueRule}
+                          onChange={(event) => updateBillingDefault(template.id, "revenueRule", event.target.value)}
+                        >
+                          <option>Deferred until close</option>
+                          <option>Recognize at engagement</option>
+                          <option>Milestone based</option>
+                        </select>
+                      
+                    </div>
+                  </div>
+                  
                 </div>
               </div>
             );
