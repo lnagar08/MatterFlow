@@ -14,7 +14,7 @@ type iSession = {
     parentId: string;
   }
 }
-export default async function ArchivedMattersPage() {
+export default async function ArchivedMattersPage(): Promise<React.ReactElement> {
   const session = await getServerSession(authOptions) as iSession;
   if (!session || !session.user) {
     notFound();
