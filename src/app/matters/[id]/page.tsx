@@ -62,7 +62,7 @@ export default async function MatterDetailPage({ params, searchParams }: MatterD
   const { membership } = await requireFirmMembership();
   const matter = await getMatterById(id, membership.firmId);
  
-  if (!matter) {
+  if (!matter || ('status' in matter)) {
     notFound();
   }
 
@@ -73,18 +73,25 @@ export default async function MatterDetailPage({ params, searchParams }: MatterD
     query.order === "added-desc"
       ? query.order
       : "engagement-desc";
+      
+  const mattersData = await getFirmMatters(membership.firmId);
 
-  const matters = (await getFirmMatters(membership.firmId)).sort((a, b) => {
-    const aTime =
-      order === "engagement-asc" || order === "engagement-desc"
-        ? new Date(a.engagementDate).getTime()
-        : new Date(a.createdAt).getTime();
-    const bTime =
-      order === "engagement-asc" || order === "engagement-desc"
-        ? new Date(b.engagementDate).getTime()
-        : new Date(b.createdAt).getTime();
-    return order === "engagement-asc" || order === "added-asc" ? aTime - bTime : bTime - aTime;
-  });
+  const matters = Array.isArray(mattersData) 
+  ? [...mattersData].sort((a, b) => {
+      const aTime =
+        order === "engagement-asc" || order === "engagement-desc"
+          ? new Date(a.engagementDate).getTime()
+          : new Date(a.createdAt).getTime();
+      const bTime =
+        order === "engagement-asc" || order === "engagement-desc"
+          ? new Date(b.engagementDate).getTime()
+          : new Date(b.createdAt).getTime();
+      
+      return order === "engagement-asc" || order === "added-asc" 
+        ? aTime - bTime 
+        : bTime - aTime;
+    })
+  : [];
   const [templates, settings] = await Promise.all([
     getFirmTemplates(membership.firmId),
     getFirmSettings(membership.firmId)
@@ -214,7 +221,11 @@ export default async function MatterDetailPage({ params, searchParams }: MatterD
           <div className="row matter-hero-actions">
           <ApplyTemplateControl
             matterId={matter.id}
-            templates={templates.map((template) => ({ id: template.id, name: template.name }))}
+            templates={
+  Array.isArray(templates) 
+    ? templates.map((template) => ({ id: template.id, name: template.name })) 
+    : [] 
+}
             isEditMetterPermission={isEditMetterPermission}
           />
           <MatterActions matterId={matter.id} />

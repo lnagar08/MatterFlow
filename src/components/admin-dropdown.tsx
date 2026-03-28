@@ -18,8 +18,16 @@ function initialsFromName(name: string) {
   
   return parts[0].slice(0, 2).toUpperCase();
 }
+
 export function AdminDropdown() {
   const { data: session, status } = useSession();
+  const user = session?.user as { 
+    name?: string | null; 
+    email?: string | null; 
+    role?: string; 
+    parentId?: string; 
+  } | undefined;
+
   const { theme, setTheme } = useTheme();
   const router = useRouter();
 
@@ -27,7 +35,7 @@ export function AdminDropdown() {
   const shortName = initialsFromName(userName);
   
   if (status === "loading") return <div>Loading...</div>;
-  if (!session) return null;
+  if (!user) return null;
 
   return (
     <details className="admin-dropdown avatar-menu relative z-[80]">
@@ -39,7 +47,7 @@ export function AdminDropdown() {
         
       </summary>
       <div className="admin-dropdown__panel avatar-panel absolute right-0 mt-2 w-48 rounded-xl bg-white p-2 z-50">
-        {session?.user?.role === 'ATTORNEY' && (
+        {user.role === 'ATTORNEY' && (
           <Link href="/users" className="admin-dropdown__item">
             Team management
           </Link>

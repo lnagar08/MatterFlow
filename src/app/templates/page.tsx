@@ -39,7 +39,10 @@ export default async function TemplatesPage() {
         </Link>
       </div>
 
-      <TemplatesManager initialTemplates={templates} isTemplatePermission={isTemplatePermission} />
+      <TemplatesManager 
+  initialTemplates={Array.isArray(templates) ? templates : []} 
+  isTemplatePermission={isTemplatePermission} 
+/>
     </main>
   );
 }
