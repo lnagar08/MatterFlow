@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { AppNav } from "@/components/app-nav";
 import AddUserModal from "@/components/AddUserModal";
-import { NextResponse } from "next/server";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";

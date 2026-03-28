@@ -6,7 +6,6 @@ import { MatterCreateForm } from "@/components/matter-create-form";
 import { requireFirmMembership } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
 import { getFirmTemplates } from "@/lib/templates";
-import { NextResponse } from "next/server";
 import { notFound, redirect } from 'next/navigation';
 export const dynamic = "force-dynamic";
 type iSession = {

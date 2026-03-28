@@ -5,7 +5,6 @@ import { AppNav } from "@/components/app-nav";
 import { ClosedMatterActions } from "@/components/closed-matter-actions";
 import { requireFirmMembership } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";

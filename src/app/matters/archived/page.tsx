@@ -5,7 +5,6 @@ import { AppNav } from "@/components/app-nav";
 import { ArchivedMatterActions } from "@/components/archived-matter-actions";
 import { requireFirmMembership } from "@/lib/firm-access";
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
 import { notFound } from "next/navigation";
 export const dynamic = "force-dynamic";
 type iSession = {

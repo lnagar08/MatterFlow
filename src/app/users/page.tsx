@@ -2,7 +2,6 @@ import AddUserModal from "@/components/AddUserModal";
 import { AppNav } from "@/components/app-nav";
 import TeamTable from "@/components/TeamTable";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 
 export default async function UserTeamPage(){
     
