@@ -20,7 +20,11 @@ export default async function ArchivedMattersPage() {
     notFound();
   }
   const userid = (session.user.role === 'STAFF'? session.user.parentId: session.user.id);
-  const { membership } = await requireFirmMembership();
+  const { membership } = (await requireFirmMembership()) as { membership: { firmId: string } };
+
+  if (!membership) {
+    notFound();
+  }
 
   const matters = await prisma.matter.findMany({
     where: {
