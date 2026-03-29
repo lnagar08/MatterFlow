@@ -2,8 +2,7 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Next.js 16+ requires the function name to be exactly 'proxy' or 'default'
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const token = await getToken({ 
     req, 
     secret: process.env.NEXTAUTH_SECRET 
@@ -11,34 +10,29 @@ export async function proxy(req: NextRequest) {
   
   const { pathname } = req.nextUrl;
 
-  const isAdmin = token?.role === "ADMIN";
-  const isStaff = token?.role === "STAFF";
-  const isAttorney = token?.role === "ATTORNEY";
-  const permissions = (token?.permissions as Record<string, boolean>) || {};
-
-  // 1. PUBLIC PATHS & ROLE-BASED REDIRECTS (Already Logged In)
+  // 1. PUBLIC PATHS CHECK
   const isPublicPath = pathname === "/" || pathname === "/auth-admin";
   
-  if (isPublicPath) {
-    if (token) {
-      const url = isAdmin ? "/admin/usermanagement" : "/home";
-      return NextResponse.redirect(new URL(url, req.url));
-    }
-    return NextResponse.next();
+  if ((pathname === "/" || pathname === "/auth-admin") && token) {
+    const url = token.role === "ADMIN" ? "/admin/usermanagement" : "/home";
+    return NextResponse.redirect(new URL(url, req.url));
   }
 
-  // 2. AUTH CHECK: If not logged in, redirect to login
-  if (!token) {
+  if (!token && pathname !== "/" && pathname !== "/auth-admin") {
     const loginUrl = pathname.startsWith("/admin") ? "/auth-admin" : "/";
     return NextResponse.redirect(new URL(loginUrl, req.url));
   }
 
-  // 3. STAFF HARD BLOCK: /users
-  if (isStaff && (pathname === "/users" || pathname.startsWith("/users/"))) {
+  // 3. ROLE-BASED PROTECTION
+  const isAdmin = token?.role === "ADMIN";
+  const isStaff = token?.role === "STAFF";
+
+  // Staff Block for /users
+  if (isStaff && pathname.startsWith("/users")) {
     return NextResponse.redirect(new URL("/access-denied", req.url));
   }
 
-  // 4. ADMIN PROTECTION
+  // Admin protection for /admin paths
   if (pathname.startsWith("/admin") && !isAdmin) {
     return NextResponse.redirect(new URL("/auth-admin", req.url));
   }
@@ -46,18 +40,13 @@ export async function proxy(req: NextRequest) {
   return NextResponse.next();
 }
 
-// 6. MATCHER CONFIG
+// MATCHER: यहाँ ध्यान दें कि किन पेजों पर मिडलवेयर चलना चाहिए
 export const config = {
   matcher: [
     "/",
     "/home/:path*",
     "/admin/:path*",
-    "/matters/:path*",
-    "/templates/:path*",
-    "/users",
     "/users/:path*",
     "/access-denied",
-    "/penalty-box",
-    "/rules"
   ],
 };
