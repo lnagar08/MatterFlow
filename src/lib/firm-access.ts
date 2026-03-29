@@ -81,7 +81,7 @@ export async function requireFirmMembership() {
   const context = await getCurrentUserContext();
 
   if (!context || !context.membership) {
-    redirect("/");
+    redirect("/login");
   }
 
   return {
