@@ -96,6 +96,6 @@ export const authOptions: NextAuthOptions = {
     }
   },
   pages: {
-    signIn: "/" // Your root page serves as the login
+    signIn: "/login" // Your root page serves as the login
   }
 };
