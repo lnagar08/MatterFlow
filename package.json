@@ -13,9 +13,6 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:seed": "tsx prisma/seed.ts"
   },
-  "prisma": {
-  "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
-},
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@next-auth/prisma-adapter": "^1.0.7",
