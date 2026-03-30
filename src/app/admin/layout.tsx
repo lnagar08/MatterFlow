@@ -16,7 +16,7 @@ export default function AdminLayout({
 }) {
   return (
 	<StrictMode>
-		<ThemeProvider defaultTheme="dark" storageKey="app-theme">
+		<ThemeProvider defaultTheme="light" storageKey="app-theme">
       		<SidebarProvider defaultOpen={true}>
 				<AppSidebar />
 				<SidebarInset>

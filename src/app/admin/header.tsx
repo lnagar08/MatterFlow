@@ -66,7 +66,7 @@ const AppHeader: React.FC = () => {
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end" className="min-w-[180px] px-3 py-2">
 						<div className="border-muted mb-2 border-b px-2 pt-1 pb-2">
-							<div className="text-foreground text-sm font-semibold">Matter Flow</div>
+							<div className="text-foreground text-sm font-semibold">{session.user?.name}</div>
 							<div className="text-muted-foreground text-xs">{session.user?.email}</div>
 						</div>
 						{dropdownMenuItems.map(({ label, icon: Icon, link }) => (
@@ -75,7 +75,7 @@ const AppHeader: React.FC = () => {
 							onClick={() => {
 							if (label === 'Logout') {
 								
-								signOut({ callbackUrl: '/login' });
+								signOut({ callbackUrl: '/auth-admin' });
 							} else {
 								
 								router.push(link || '');

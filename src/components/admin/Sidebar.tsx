@@ -66,10 +66,10 @@ const pathname = usePathname();
           />*/}
           <div className="text-2xl flex items-center gap-1">
             <span className="font-extrabold dark:!text-white">
-              MATTER
+              Flow
             </span>
             <span className="font-extrabold bg-clip-text text-transparent bg-[linear-gradient(110deg,#3b82f6_0%,#60a5fa_55%,#93c5fd_100%)] dark:bg-none dark:text-blue-400">
-              FLOW
+              Guardian
             </span>
           </div>
         </div>
@@ -79,10 +79,10 @@ const pathname = usePathname();
       <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
         {/*<img src={LogoSidebar} alt="Logo Icon" className="block h-[40px] w-[40px] p-1" />*/}
         <span className="font-extrabold dark:!text-white">
-              M
+              F
             </span>
             <span className="font-extrabold bg-clip-text text-transparent bg-[linear-gradient(110deg,#3b82f6_0%,#60a5fa_55%,#93c5fd_100%)] dark:bg-none dark:text-blue-400">
-              F
+              G
             </span>
       </div>
     );

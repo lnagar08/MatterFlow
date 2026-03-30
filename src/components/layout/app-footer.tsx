@@ -20,7 +20,7 @@ const AppFooter: React.FC = () => {
 								rel="noopener noreferrer"
 								className="text-blue-600"
 							>
-								Matter Flow
+								FlowGuardian
 							</a>
 						</p>
 					</div>

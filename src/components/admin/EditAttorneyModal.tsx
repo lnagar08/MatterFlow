@@ -64,7 +64,7 @@ export default function EditAttorneyModal({ isOpen, onClose, user, onUserUpdated
 };
 
   return (
-    <div className="bg-background text-foreground p-6 rounded-lg"> 
+    <div className="bg-background text-foreground rounded-lg"> 
     <Form {...form}>
             
             <form onSubmit={form.handleSubmit(onFormSubmit)} className="grid gap-4 py-4">

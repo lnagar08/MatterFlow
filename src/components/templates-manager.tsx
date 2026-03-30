@@ -1380,7 +1380,7 @@ export function TemplatesManager({ initialTemplates, isTemplatePermission }: Pro
                     </div>
                   </div>
                   
-                  <div className="col-6">
+                  <div className="col-12">
                     <div className="form-group">
                       <label className="meta">
                         Overdue Rule (days past due)

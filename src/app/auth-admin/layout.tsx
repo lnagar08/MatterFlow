@@ -16,7 +16,7 @@ export default function LoginLayout({
   return (
         <>
         <Toaster position="top-center" />
-        <ThemeProvider defaultTheme="dark" storageKey="app-theme">
+        <ThemeProvider defaultTheme="light" storageKey="app-theme">
           {children}
         </ThemeProvider>
         </>        
