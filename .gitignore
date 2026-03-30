@@ -1,8 +1,7 @@
 node_modules
 .next
-out
-.env
 .env.local
+.env
 .env.production.local
 .env.*.backup*
 backups/
