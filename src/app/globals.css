@@ -155,11 +155,8 @@ h3 {
     display: inline-flex;
 }
 .button.matter-temp-action-close {
-    border: 1px solid #A9A6A6;
-    width: 47px;
-    padding: 8px 9px;
+    border: 1px solid #a9a6a6;
     height: 47px;
-    margin-left: 20px;
 }
 .button.matter-temp-action-archive {
     color: #fff;
@@ -622,20 +619,36 @@ select:focus {
 }
 
 .avatar-panel {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: calc(100% + 10px);
-  min-width: 170px;
-  border: 1px solid #d8e1ef;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.16);
-  padding: 8px;
-  gap: 4px;
-  z-index: 120;
+    z-index: 120;
+    background: #fff;
+    border: 1px solid #d8e1ef;
+    border-radius: 14px;
+    gap: 4px;
+    min-width: 210px;
+    padding: 8px;
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    box-shadow: 0 16px 30px #0f172a29;
 }
-
+.admin-dropdown .admin-dropdown__item{
+    display: flex;
+}
+.admin-dropdown .admin-dropdown__item svg {
+    width: 20px;
+    margin-right: 8px;
+    margin-left: 6px;
+    color: #334a6f;
+}
+.admin-dropdown .admin-dropdown__item svg path {
+    color: #334a6f;
+    stroke: #334a6f;
+}
+.admin-dropdown .admin-dropdown__item svg.close-icon-svg path {
+    stroke: none;
+    fill: #334a6f;
+}
 .avatar-menu[open] .avatar-panel {
   display: grid;
 }
@@ -3268,6 +3281,12 @@ select:focus {
 }
 .flow-health-segment-n.out {
     background: #e35a6d;
+}
+.flow-health-segment-n.upcoming {
+    background: linear-gradient(90deg, #b9c7de, #c8d3e6);
+}
+.flow-health-node-n.upcoming {
+    background: linear-gradient(90deg, #b9c7de, #c8d3e6);
 }
 .flow-health-segment-n.in {
     background: #ccc;

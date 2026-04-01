@@ -56,9 +56,9 @@ export async function POST(request: Request) {
     const newCompanyName = payload.newClient.companyName?.trim();
     const newLogoUrl = payload.newClient.logoUrl?.trim();
 
-    if (!newName || !newCompanyName) {
+    if (!newName) {
       return NextResponse.json(
-        { error: "New client name and company are required." },
+        { error: "New client name is required." },
         { status: 400 }
       );
     }
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
         firmId: membership.firmId,
         userId: userid,
         name: newName,
-        companyName: newCompanyName,
+        companyName: newCompanyName ?? "", 
         logoUrl:
           newLogoUrl ||
           "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=120&q=80"

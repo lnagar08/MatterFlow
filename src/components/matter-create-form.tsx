@@ -157,7 +157,6 @@ export function MatterCreateForm({ clients, templates, isClientPermission }: Pro
                   <input
                     name="newClientCompanyName"
                     placeholder="New client company name"
-                    required
                     className="input"
                   />
                 </div>
@@ -210,7 +209,7 @@ export function MatterCreateForm({ clients, templates, isClientPermission }: Pro
             {status === "saving" ? "Creating..." : "Create Matter"}
           </button>
         </div>
-        {error ? <div className="meta">{error}</div> : null}
+        {error ? <div className="text-red-500 font-bold">{error}</div> : null}
       </form>
       <ImportMattersModal open={importOpen} onClose={() => setImportOpen(false)} />
     </>

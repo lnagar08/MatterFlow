@@ -1096,8 +1096,7 @@ const steps: Step[] = [
       {ENABLE_INLINE_FLOW_TIMELINE ? (
         
         <>
-        
-        {/*<FlowHealthBar steps={steps} completed={7} total={8} expectedDays={14} overdueDays={7} />*/}
+       
         <section className="glass-card flow-health-panel">
           <div className="flow-health-shell">
             <div className="flow-health-head">
@@ -1140,12 +1139,12 @@ const steps: Step[] = [
                     : { width: "100%", minWidth: 0, gridTemplateColumns: stageGridColumns }
                 }
               >
-               {timelineStages.map((stage) => {
+               {/*timelineStages.map((stage) => {
                   const segmentTone = flowSegmentTone(stage.tone);
                   return (
                     <div key={`${stage.id}-node`} className="flow-health-stage-cell">
                       
-                      {/* NEW: Step-level breakdown */}
+                      
                       <div className="flow-health-step-list-n">
                         {stage.steps.map((step) => (
                           
@@ -1160,20 +1159,24 @@ const steps: Step[] = [
                       </div>
                     </div>
                   );
-                })}
+                })*/}
 
-                {/*timelineStages.map((stage, index) => {
+                {timelineStages.map((stage, index) => {
                   const segmentTone = flowSegmentTone(stage.tone);
                   return (
                     <div key={`${stage.id}-node`} className="flow-health-stage-cell">
+                    <div className="flow-health-step-list-n">
+                    <div key={`${stage.id}-node`} className="flow-health-stage-cell-n">
                      
-                        <span className={`flow-health-segment ${segmentTone}`} aria-hidden="true" />
-                        <span className={`flow-health-node ${flowSegmentTone(stage.tone)}`}>{iconForTone(stage.tone)}</span>
-                        <span className="flow-health-node-label">{stage.title}</span>
+                        <span className={`flow-health-segment-n ${segmentTone}`} aria-hidden="true" />
+                        <span className={`flow-health-node-n ${flowSegmentTone(stage.tone)}`}>{iconForTone(stage.tone)}</span>
+                        <span className="flow-health-node-label-n">{stage.title}</span>
                       
                     </div>
+                    </div>
+                    </div>
                   );
-                })*/}
+                })}
                   
               </div>
             </div>
