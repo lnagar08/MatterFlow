@@ -95,7 +95,7 @@ export default function RegisterForm() {
         }
 
         // Show a beautiful green success toast
-        toast.success("Account created successfully! Welcome to MatterFlow.");
+        toast.success("Account created successfully! Welcome to FlowGuardian.");
 
         // Delay the redirection by 2 seconds so the user can see the success toast
         setTimeout(() => {

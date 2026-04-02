@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
+import { useSession } from "next-auth/react";
 import { DashboardTriage } from "@/components/home/dashboard-triage";
 import { ImportMattersModal } from "@/components/import-matters-modal";
 import { useUiPreference } from "@/hooks/use-ui-preference";
@@ -340,6 +340,18 @@ export function HomeMattersList({
     );
   }
 
+  
+  const { data: session, status } = useSession();
+
+  const user = session?.user as { 
+    role: string; 
+    permissions: {
+      viewMatter: string;
+    }; 
+  } | undefined;
+
+  const isViewMetterPermission = (user?.role === 'STAFF' && !user?.permissions.viewMatter? true: false);
+  
   if (mockupLayout) {
     return (
       <div className="flow-mockup-shell">
@@ -483,8 +495,9 @@ export function HomeMattersList({
                 ) : null}
               </div>
             </section>
-
-            <section className="flow-mockup-table card">
+            
+            {!isViewMetterPermission ? (
+              <section className="flow-mockup-table card">
               <div className="flow-table-head">
                 <span>Matter</span>
                 <span>FlowGuardian</span>
@@ -521,6 +534,10 @@ export function HomeMattersList({
               })}
               {filtered.length === 0 ? <div className="meta" style={{ padding: "18px 4px" }}>No active matters found.</div> : null}
             </section>
+            ) : (
+              null
+            )}
+            
           </section>
         </div>
         <ImportMattersModal open={importOpen} onClose={() => setImportOpen(false)} />

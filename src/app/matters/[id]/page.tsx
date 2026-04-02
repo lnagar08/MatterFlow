@@ -50,11 +50,6 @@ type iSession = {
 export default async function MatterDetailPage({ params, searchParams }: MatterDetailPageProps) {
   const session = await getServerSession(authOptions) as iSession;
 
-  const isViewMetterPermission = (session.user.role === 'STAFF' && !session.user.permissions.viewMatter? true: false);
-  if(isViewMetterPermission){
-    redirect('/access-denied');
-  }
-
   const isEditMetterPermission = (session.user.role === 'STAFF' && !session.user.permissions.editMatter? true: false);
   
   const { id } = await params;
